@@ -13,8 +13,12 @@ import { loadConfig } from './lib/config.js';
 import { loadDeployManifest } from './lib/manifest.js';
 import { bumpCacheBusting } from './lib/cache-bust.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const deployDir = join(ROOT, 'deploy');
+// PROJECT_ROOT: 사용자 프로젝트(process.cwd()) — deploy/ 등 사용자 파일 기준
+// PACKAGE_ROOT: 이 스크립트 자신의 위치 — 형제 스크립트(git-track.js 등)를 spawn 하기 위한 기준
+// npm 패키지로 설치되면 이 둘이 서로 다른 경로가 되므로 반드시 분리해야 한다.
+const PROJECT_ROOT = process.cwd();
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const deployDir = join(PROJECT_ROOT, 'deploy');
 
 /**
  * manifest 기반 안전 업로드
@@ -137,8 +141,8 @@ function validateSftpConfig(cfg) {
 }
 
 function runNodeScript(script, ...args) {
-  const result = spawnSync(process.execPath, [join(ROOT, script), ...args], {
-    cwd: ROOT,
+  const result = spawnSync(process.execPath, [join(PACKAGE_ROOT, script), ...args], {
+    cwd: PROJECT_ROOT,
     stdio: 'inherit',
     env: process.env,
   });

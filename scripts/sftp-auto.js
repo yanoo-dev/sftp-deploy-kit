@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
+// 사용자 프로젝트(process.cwd()) 기준 — npm 패키지로 설치돼도 정확히 동작
+const ROOT = process.cwd();
 const CONFIG_PATH = join(ROOT, '.vscode', 'sftp.json');
 const DOWNLOAD_ON_OPEN_KEY = 'downloadOnOpen';
 

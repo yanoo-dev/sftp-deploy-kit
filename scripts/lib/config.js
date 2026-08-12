@@ -1,9 +1,10 @@
 import 'dotenv/config';
 import { readFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+// npm 패키지로 설치돼 node_modules 안에서 실행되더라도, 설정 파일은
+// 항상 "사용자가 명령을 실행한 프로젝트"(process.cwd()) 기준으로 찾는다.
+const ROOT = process.cwd();
 
 /**
  * 접속/경로 설정을 단일 소스로 로드

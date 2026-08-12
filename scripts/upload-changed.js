@@ -7,8 +7,11 @@ import { loadConfig } from './lib/config.js';
 import { loadDeployManifest } from './lib/manifest.js';
 import { bumpCacheBusting } from './lib/cache-bust.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const deployDir = join(ROOT, 'deploy');
+// PROJECT_ROOT: 사용자 프로젝트(process.cwd()) — deploy/, git status 전부 사용자 쪽 기준
+// PACKAGE_ROOT: 이 스크립트 자신의 위치 — 형제 스크립트(git-track.js 등)를 spawn 하기 위한 기준
+const PROJECT_ROOT = process.cwd();
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const deployDir = join(PROJECT_ROOT, 'deploy');
 
 /**
  * 워킹트리 기준으로 "지금 바뀐 파일"만 자동으로 골라 업로드한다
@@ -101,7 +104,7 @@ function resolveManifestName(manifests, requested) {
  */
 function getWorkingTreeChangedFiles() {
   const output = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
-    cwd: ROOT,
+    cwd: PROJECT_ROOT,
     encoding: 'utf8',
   });
 

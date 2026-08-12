@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { loadConfig } from './lib/config.js';
 import { loadDeployManifest } from './lib/manifest.js';
 
@@ -10,10 +9,11 @@ import { loadDeployManifest } from './lib/manifest.js';
  * deploy 폴더의 모든 manifest 의 files 를 모아 .gitignore 의 auto-track 구간에
  * 추적 예외(!) 규칙을 생성한다. localRoot(workspaces/html) 가 통째로 무시되는 상태에서
  * "작업/배포 파일만" git 에 추적시키는 단일 소스 동기화 도구.
- * 사용: npm run track  (manifest 에 파일 추가 후 실행)
+ * 사용: sftp-deploy-kit track  (manifest 에 파일 추가 후 실행)
  */
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+// 사용자 프로젝트(process.cwd()) 기준 — deploy/, .gitignore 전부 사용자 쪽 파일
+const ROOT = process.cwd();
 const cfg = loadConfig();
 const localRoot = (cfg.localRoot || 'workspaces/html').replace(/\/+$/, '');
 
