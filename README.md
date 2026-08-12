@@ -20,7 +20,6 @@ SFTP pull/upload을 쉽고 안전하게 — 변경 파일 자동 감지, 드리�
 
 ```
 sftp-deploy-kit/
-├─ .claude/settings.json     # Claude Code 세션 훅 (시작 시 downloadOnOpen 끄고, 종료 시 켬)
 ├─ .vscode/sftp.json.example # 접속정보 템플릿 (복사해서 sftp.json으로 사용, git 제외)
 ├─ scripts/
 │  ├─ sftp-pull.js           # 서버 → 로컬 받기
@@ -144,11 +143,25 @@ npm run pull -- --paths="a.css,b.js,sub/c.html"
 
 **핵심**: `.git`이 남을 수 있는 지점은 ①(키트 자신)과 ③(서버 원본) 두 곳뿐이고, 둘 다 이미 자동으로 처리됩니다. ②는 사용자가 직접 새로 만드는 것이라 애초에 "딸려오는 git"이 아니라 충돌 대상이 아닙니다.
 
-## AI(Claude Code) 세션 충돌 방지
+## (선택) AI 코딩 툴 세션 충돌 방지
 
-VS Code SFTP 확장의 `downloadOnOpen: true`는 파일 탭을 열 때마다 서버 최신본으로 덮어씁니다. 원래는 사람끼리 덮어쓰기 방지용이지만, Claude Code처럼 터미널에서 직접 파일을 수정하는 도구와 같이 쓰면 **AI가 방금 고친 내용이 파일을 열자마자 조용히 사라지는** 부작용이 있습니다.
+VS Code SFTP 확장의 `downloadOnOpen: true`는 파일 탭을 열 때마다 서버 최신본으로 덮어씁니다. 원래는 사람끼리 덮어쓰기 방지용이지만, 터미널에서 직접 파일을 수정하는 AI 코딩 툴과 같이 쓰면 **AI가 방금 고친 내용이 파일을 열자마자 조용히 사라지는** 부작용이 있습니다.
 
-`.claude/settings.json`에 `SessionStart`/`SessionEnd` 훅이 내장되어 있어, Claude Code 세션 시작 시 `downloadOnOpen`을 자동으로 끄고 종료 시 다시 켭니다. `Stop` 훅이 아니라 `SessionStart`/`SessionEnd`를 쓴 이유는 `Stop`이 응답 하나 끝날 때마다(대화 중간중간) 계속 fire되기 때문입니다. `.vscode/sftp.json`이 없는 프로젝트에서도 에러 없이 통과합니다.
+이건 특정 AI 툴(예: Claude Code)에서만 의미가 있는 설정이라 이 키트엔 기본 포함하지 않고 `.gitignore`에 `.claude/`를 넣어뒀습니다. Claude Code를 쓴다면 프로젝트에 아래처럼 `.claude/settings.json`을 직접 추가하세요:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{ "hooks": [{ "type": "command",
+      "command": "test -f .vscode/sftp.json && node scripts/sftp-auto.js off >/dev/null 2>&1 || true" }] }],
+    "SessionEnd": [{ "hooks": [{ "type": "command",
+      "command": "test -f .vscode/sftp.json && node scripts/sftp-auto.js on >/dev/null 2>&1 || true" }] }]
+  }
+}
+```
+세션 시작 시 `downloadOnOpen`을 자동으로 끄고 종료 시 다시 켭니다. `Stop` 훅이 아니라 `SessionStart`/`SessionEnd`를 쓴 이유는 `Stop`이 응답 하나 끝날 때마다(대화 중간중간) 계속 fire되기 때문입니다. `.vscode/sftp.json`이 없는 프로젝트에서도 에러 없이 통과합니다.
+
+다른 AI 코딩 툴을 쓴다면 그 툴의 훅/설정 방식으로 `node scripts/sftp-auto.js off`/`on`을 같은 타이밍에 호출하면 동일하게 적용됩니다.
 
 한계: 터미널을 강제 종료하면 `SessionEnd`가 못 뛸 수 있습니다 — 가끔 `npm run sftp:auto:status`로 확인하세요.
 
