@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.tunnel
+.vscode/sftp.json
+backups/*
+!backups/.gitkeep
+!backups/.last-deployed
+
+# >>> auto-track (manifest 기반 · git-track.js 자동생성 · 수정 금지) >>>
+workspaces/html/*
+# <<< auto-track <<<

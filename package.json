@@ -1,0 +1,26 @@
+{
+  "name": "sftp-deploy-kit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SFTP pull/upload 자동화 — 변경 파일 자동 감지, 드리프트 체크, 백업/롤백 내장 상태관리 키트 (php-local-kit에서 SFTP 파이프라인만 분리)",
+  "scripts": {
+    "pull": "node scripts/sftp-pull.js && node scripts/remove-git.js",
+    "remove-git": "node scripts/remove-git.js",
+    "sftp:auto": "node scripts/sftp-auto.js",
+    "sftp:auto:on": "node scripts/sftp-auto.js on",
+    "sftp:auto:off": "node scripts/sftp-auto.js off",
+    "sftp:auto:status": "node scripts/sftp-auto.js status",
+    "track": "node scripts/git-track.js",
+    "deploy:check": "node scripts/deploy-check.js",
+    "deploy:backup": "node scripts/deploy-backup.js",
+    "deploy": "node scripts/deploy.js",
+    "deploy:rollback": "node scripts/deploy-rollback.js",
+    "upload": "node scripts/upload.js",
+    "upload:changed": "node scripts/upload-changed.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ssh2-sftp-client": "^11.0.0"
+  }
+}

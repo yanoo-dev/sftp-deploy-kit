@@ -1,0 +1,43 @@
+import 'dotenv/config';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+/**
+ * 접속/경로 설정을 단일 소스로 로드
+ *
+ * 우선순위: .vscode/sftp.json → .env (폴백). VS Code SFTP 설정 하나로 통일해
+ * lftp/deploy 등 모든 스크립트가 같은 host·경로 매핑을 쓰게 한다.
+ * SFTP_FORCE_ENV 가 설정되면 sftp.json이 있어도 건너뛰고 .env(.env.tunnel 등)를 강제로 쓴다
+ * (예: NUC SSH 터널 경유 등 sftp.json과 다른 접속 경로가 필요할 때).
+ */
+export function loadConfig() {
+  const sftpPath = join(ROOT, '.vscode', 'sftp.json');
+  if (existsSync(sftpPath) && !process.env.SFTP_FORCE_ENV) {
+    const j = JSON.parse(readFileSync(sftpPath, 'utf8'));
+    return {
+      host: j.host,
+      port: j.port || 22,
+      user: j.username,
+      password: j.password,
+      privateKeyPath: j.privateKeyPath || null,
+      passphrase: j.passphrase || null,
+      remoteRoot: String(j.remotePath || '').replace(/\/+$/, ''),
+      localRoot: j.context || 'workspaces/html',
+      source: '.vscode/sftp.json',
+    };
+  }
+  return {
+    host: process.env.SFTP_HOST,
+    port: process.env.SFTP_PORT || 22,
+    user: process.env.SFTP_USER,
+    password: process.env.SFTP_PASSWORD,
+    privateKeyPath: process.env.SFTP_PRIVATE_KEY || null,
+    passphrase: process.env.SFTP_PASSPHRASE || null,
+    remoteRoot: String(process.env.SFTP_REMOTE_ROOT || '').replace(/\/+$/, ''),
+    localRoot: process.env.SFTP_LOCAL_ROOT || 'workspaces/html',
+    source: '.env',
+  };
+}

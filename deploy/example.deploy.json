@@ -1,0 +1,8 @@
+{
+  "remoteRoot": "/path/on/server/subfolder",
+  "files": [
+    "example.css",
+    "example.js"
+  ],
+  "directories": []
+}

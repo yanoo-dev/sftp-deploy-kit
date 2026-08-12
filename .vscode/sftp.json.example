@@ -1,0 +1,11 @@
+{
+    "name": "My Server",
+    "host": "",
+    "port": 22,
+    "username": "",
+    "password": "",
+    "remotePath": "/path/on/server",
+    "context": "workspaces/html",
+    "uploadOnSave": false,
+    "downloadOnOpen": false
+}
