@@ -18,15 +18,9 @@ npm update sftp-deploy-kit
 ## 초기 설정
 
 ```bash
-mkdir -p .vscode
-cp node_modules/sftp-deploy-kit/.vscode/sftp.json.example .vscode/sftp.json
+npx sftp-kit init
 ```
-`.vscode/sftp.json`을 열어 접속정보를 채웁니다 (host/port/username/password/remotePath/context).
-
-```bash
-mkdir -p deploy
-cp node_modules/sftp-deploy-kit/deploy/example.deploy.json deploy/<프로젝트키>.deploy.json
-```
+로컬 소스 폴더명·배포 매니페스트 이름을 물어보고 `.vscode/sftp.json`, `deploy/<이름>.deploy.json`을 자동 생성합니다(이미 있으면 건너뜀). 생성된 `.vscode/sftp.json`을 열어 접속정보(host/username/password/remotePath)를 채우고, `deploy/<이름>.deploy.json`에 올릴 파일 목록을 채우세요:
 ```json
 {
   "remoteRoot": "/서버/절대/경로/하위폴더",
@@ -55,6 +49,7 @@ npx sftp-kit upload:changed
 
 | 명령어 | 역할 |
 |---|---|
+| `npx sftp-kit init` | `.vscode/sftp.json`/`deploy/*.json` 대화형 생성 |
 | `npx sftp-kit pull -- --paths="a,b,c"` | 지정 파일 서버에서 받기 (+ 서버측 `.git` 자동 제거) |
 | `npx sftp-kit upload:changed [-- <매니페스트이름>] [--force]` | 변경분 자동 감지 → 업로드 (기본 명령) |
 | `npx sftp-kit upload` | 매니페스트 전체 업로드 |

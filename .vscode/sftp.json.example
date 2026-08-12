@@ -5,7 +5,7 @@
     "username": "",
     "password": "",
     "remotePath": "/path/on/server",
-    "context": "workspaces/html",
+    "context": "web",
     "uploadOnSave": false,
     "downloadOnOpen": false
 }

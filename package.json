@@ -18,6 +18,7 @@
     "LICENSE"
   ],
   "scripts": {
+    "dev:init": "node scripts/init.js",
     "dev:pull": "node scripts/sftp-pull.js && node scripts/remove-git.js",
     "dev:remove-git": "node scripts/remove-git.js",
     "dev:sftp:auto": "node scripts/sftp-auto.js",

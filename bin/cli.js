@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const COMMANDS = {
+  init: 'scripts/init.js',
   pull: 'scripts/sftp-pull.js',
   upload: 'scripts/upload.js',
   'upload:changed': 'scripts/upload-changed.js',
@@ -23,7 +24,7 @@ const COMMANDS = {
 const [, , cmd, ...rest] = process.argv;
 
 if (!cmd || !COMMANDS[cmd]) {
-  console.error('사용법: sftp-deploy-kit <명령어> [옵션]\n');
+  console.error('사용법: sftp-kit <명령어> [옵션]\n');
   console.error('사용 가능한 명령어:');
   for (const name of Object.keys(COMMANDS)) {
     console.error(`  ${name}`);

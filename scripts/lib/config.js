@@ -26,7 +26,7 @@ export function loadConfig() {
       privateKeyPath: j.privateKeyPath || null,
       passphrase: j.passphrase || null,
       remoteRoot: String(j.remotePath || '').replace(/\/+$/, ''),
-      localRoot: j.context || 'workspaces/html',
+      localRoot: j.context || 'web',
       source: '.vscode/sftp.json',
     };
   }
@@ -38,7 +38,7 @@ export function loadConfig() {
     privateKeyPath: process.env.SFTP_PRIVATE_KEY || null,
     passphrase: process.env.SFTP_PASSPHRASE || null,
     remoteRoot: String(process.env.SFTP_REMOTE_ROOT || '').replace(/\/+$/, ''),
-    localRoot: process.env.SFTP_LOCAL_ROOT || 'workspaces/html',
+    localRoot: process.env.SFTP_LOCAL_ROOT || 'web',
     source: '.env',
   };
 }
