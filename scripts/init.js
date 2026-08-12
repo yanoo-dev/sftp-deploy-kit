@@ -50,6 +50,28 @@ async function main() {
     console.log(`[init] 생성: deploy/${manifestName}.deploy.json`);
   }
 
+  // .env — .vscode/sftp.json이 있으면 항상 우선이라 실제로는 안 쓰이지만,
+  // sftp.json을 나중에 지우고 .env 방식으로 바꾸고 싶을 때를 대비해 폴백용으로 같이 생성
+  const envTarget = join(PROJECT_ROOT, '.env');
+  if (existsSync(envTarget)) {
+    console.log('[init] 이미 있음, 건너뜀: .env');
+  } else {
+    const exampleEnv = readFileSync(join(PACKAGE_ROOT, '.env.example'), 'utf8');
+    writeFileSync(envTarget, exampleEnv, 'utf8');
+    console.log('[init] 생성: .env (폴백용 — .vscode/sftp.json이 있으면 이건 안 씀)');
+  }
+
+  // backups/ — 실제 백업은 나중에 자동 생성되지만, 폴더 존재 자체를 미리 보여주기 위해 .gitkeep으로 확보
+  const backupsDir = join(PROJECT_ROOT, 'backups');
+  const backupsKeep = join(backupsDir, '.gitkeep');
+  if (existsSync(backupsDir)) {
+    console.log('[init] 이미 있음, 건너뜀: backups/');
+  } else {
+    mkdirSync(backupsDir, { recursive: true });
+    writeFileSync(backupsKeep, '', 'utf8');
+    console.log('[init] 생성: backups/.gitkeep');
+  }
+
   rl.close();
 
   console.log('\n[init] 완료. 다음 순서:');
