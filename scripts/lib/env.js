@@ -52,3 +52,23 @@ export function sftpConfig() {
 
   return config;
 }
+
+/**
+ * 접속 설정을 basic-ftp 옵션으로 변환 (loadConfig() 단일 소스, sftp.json 우선/.env 폴백)
+ *
+ * FTP는 키 인증 개념이 없어 host/port/user/password만 다룬다.
+ */
+export function ftpConfig() {
+  const cfg = loadConfig();
+  if (!cfg.host || !cfg.user) {
+    console.error(`FTP host / username 이 없습니다 (${cfg.source}).`);
+    process.exit(1);
+  }
+
+  return {
+    host: cfg.host,
+    port: Number(cfg.port || 21),
+    user: cfg.user,
+    password: cfg.password || '',
+  };
+}

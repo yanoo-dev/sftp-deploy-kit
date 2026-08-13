@@ -18,9 +18,11 @@ export function loadConfig() {
   const sftpPath = join(ROOT, '.vscode', 'sftp.json');
   if (existsSync(sftpPath) && !process.env.SFTP_FORCE_ENV) {
     const j = JSON.parse(readFileSync(sftpPath, 'utf8'));
+    const protocol = j.protocol === 'ftp' ? 'ftp' : 'sftp';
     return {
       host: j.host,
-      port: j.port || 22,
+      protocol,
+      port: j.port || (protocol === 'ftp' ? 21 : 22),
       user: j.username,
       password: j.password,
       privateKeyPath: j.privateKeyPath || null,
@@ -30,9 +32,11 @@ export function loadConfig() {
       source: '.vscode/sftp.json',
     };
   }
+  const protocol = process.env.SFTP_PROTOCOL === 'ftp' ? 'ftp' : 'sftp';
   return {
     host: process.env.SFTP_HOST,
-    port: process.env.SFTP_PORT || 22,
+    protocol,
+    port: process.env.SFTP_PORT || (protocol === 'ftp' ? 21 : 22),
     user: process.env.SFTP_USER,
     password: process.env.SFTP_PASSWORD,
     privateKeyPath: process.env.SFTP_PRIVATE_KEY || null,

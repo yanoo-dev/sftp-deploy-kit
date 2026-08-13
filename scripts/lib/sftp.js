@@ -1,14 +1,18 @@
 import SftpClient from 'ssh2-sftp-client';
-import { sftpConfig } from './env.js';
+import { FtpClientAdapter } from './ftp-client.js';
+import { loadConfig } from './config.js';
+import { sftpConfig, ftpConfig } from './env.js';
 
 /**
- * 연결된 SFTP 클라이언트를 만들고 콜백 실행 후 반드시 종료
+ * 연결된 원격 클라이언트를 만들고 콜백 실행 후 반드시 종료
  *
- * 작업 함수에 client 를 넘겨 주고, 성공/실패와 무관하게 연결을 닫는다.
+ * .vscode/sftp.json(또는 .env)의 protocol 값에 따라 SFTP(ssh2-sftp-client)
+ * 또는 FTP(basic-ftp 어댑터)를 골라 쓴다. 이후 로직은 동일한 인터페이스로 동작한다.
  */
 export async function withSftp(run) {
-  const client = new SftpClient();
-  await client.connect(sftpConfig());
+  const isFtp = loadConfig().protocol === 'ftp';
+  const client = isFtp ? new FtpClientAdapter() : new SftpClient();
+  await client.connect(isFtp ? ftpConfig() : sftpConfig());
   try {
     return await run(client);
   } finally {
