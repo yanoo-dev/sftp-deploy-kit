@@ -34,7 +34,7 @@ npx sftp-kit init
 ## 사용법
 
 > `sftp-kit`은 `npm run`이 아니라 진짜 실행파일(bin)이라, 인자 앞에 `--`를 붙이지 않습니다.
-
+ehlrh/
 **처음 받을 때 — 전체 구조 통째로**
 ```bash
 npx sftp-kit pull --exclude="logs,tmp,uploads"

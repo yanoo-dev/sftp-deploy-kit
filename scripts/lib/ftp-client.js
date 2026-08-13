@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { Client as FtpClient } from 'basic-ftp';
@@ -7,8 +8,10 @@ import { Client as FtpClient } from 'basic-ftp';
  *
  * withSftp()/uploadFiles()가 프로토콜과 무관하게 동일한 코드로 동작하도록,
  * connect/end/exists/mkdir/fastGet/fastPut/downloadDir을 맞춰 제공한다.
+ * ssh2-sftp-client와 마찬가지로 EventEmitter를 상속해 downloadDir 중
+ * 파일마다 'download' 이벤트를 emit한다(진행상황 로그용).
  */
-export class FtpClientAdapter {
+export class FtpClientAdapter extends EventEmitter {
   #client = new FtpClient();
 
   async connect(config) {
@@ -68,6 +71,7 @@ export class FtpClientAdapter {
         await this.downloadDir(remotePath, localPath, options);
       } else {
         await this.#client.downloadTo(localPath, remotePath);
+        this.emit('download', { source: remotePath, destination: localPath });
       }
     }
   }

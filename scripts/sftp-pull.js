@@ -47,11 +47,16 @@ async function main() {
     : null;
 
   mkdirSync(localRoot, { recursive: true });
+  let count = 0;
   await withSftp(async (client) => {
+    client.on('download', ({ source }) => {
+      count += 1;
+      console.log(`받음(${count}): ${source}`);
+    });
     await client.downloadDir(remoteRoot, localRoot, { filter });
   });
   const excludeNote = excludeNames.size ? ` (제외: ${[...excludeNames].join(', ')})` : '';
-  console.log(`완료: 전체 미러링 ${remoteRoot} → ${localRoot}${excludeNote}`);
+  console.log(`완료: 전체 미러링 ${count}개 ${remoteRoot} → ${localRoot}${excludeNote}`);
 }
 
 main().catch((err) => {
