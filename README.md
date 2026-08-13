@@ -33,9 +33,17 @@ npx sftp-kit init
 
 ## 사용법
 
-**처음 받을 때**
+> `sftp-kit`은 `npm run`이 아니라 진짜 실행파일(bin)이라, 인자 앞에 `--`를 붙이지 않습니다.
+
+**처음 받을 때 — 전체 구조 통째로**
 ```bash
-npx sftp-kit pull -- --paths="a.css,b.js,sub/c.html"
+npx sftp-kit pull --exclude="logs,tmp,uploads"
+```
+`--paths`를 생략하면 원격 `remoteRoot` 전체를 로컬로 재귀 미러링합니다. `--exclude`로 이름이 일치하는 폴더/파일(로그, 캐시, 업로드 원본 등 불필요한 것)을 제외할 수 있습니다.
+
+**특정 파일만 받을 때**
+```bash
+npx sftp-kit pull --paths="a.css,b.js,sub/c.html"
 ```
 
 **평소 작업 흐름**
@@ -50,17 +58,22 @@ npx sftp-kit upload:changed
 | 명령어 | 역할 |
 |---|---|
 | `npx sftp-kit init` | `.vscode/sftp.json`/`deploy/*.json` 대화형 생성 |
-| `npx sftp-kit pull -- --paths="a,b,c"` | 지정 파일 서버에서 받기 (+ 서버측 `.git` 자동 제거) |
-| `npx sftp-kit upload:changed [-- <매니페스트이름>] [--force]` | 변경분 자동 감지 → 업로드 (기본 명령) |
+| `npx sftp-kit pull [--exclude="a,b"]` | `remoteRoot` 전체 재귀 미러링 (+ 서버측 `.git` 자동 제거) |
+| `npx sftp-kit pull --paths="a,b,c"` | 지정 파일만 받기 (+ 서버측 `.git` 자동 제거) |
+| `npx sftp-kit upload:changed [<매니페스트이름>] [--force]` | 변경분 자동 감지 → 업로드 (기본 명령) |
 | `npx sftp-kit upload` | 매니페스트 전체 업로드 |
 | `npx sftp-kit track` | 매니페스트 파일들을 `.gitignore` 추적 예외로 등록 |
-| `npx sftp-kit deploy:check -- --page=<이름>` | 로컬 파일 존재 여부만 점검 (업로드 안 함) |
-| `npx sftp-kit deploy:backup -- --page=<이름> [--force]` | 드리프트 체크 + 백업만 |
-| `npx sftp-kit deploy:rollback -- --page=<이름> [--backup=<id>]` | 백업 스냅샷으로 서버 복원 |
+| `npx sftp-kit deploy:check --page=<이름>` | 로컬 파일 존재 여부만 점검 (업로드 안 함) |
+| `npx sftp-kit deploy:backup --page=<이름> [--force]` | 드리프트 체크 + 백업만 |
+| `npx sftp-kit deploy:rollback --page=<이름> [--backup=<id>]` | 백업 스냅샷으로 서버 복원 |
 | `npx sftp-kit sftp:auto off` / `on` / `status` | VS Code `downloadOnOpen` 토글 |
 | `npx sftp-kit remove-git` | 서버측 `.git` 잔여물 수동 제거 (pull에 이미 자동 포함됨) |
 
 항상 프로젝트 루트(설정 파일이 있는 폴더)에서 실행하세요.
+
+## SFTP / FTP
+
+`.vscode/sftp.json`(또는 `.env`)에 `"protocol": "sftp"` 또는 `"ftp"`를 넣어 접속 방식을 고를 수 있습니다(생략 시 `sftp`). 순수 FTP만 지원하는 서버라면 `"ftp"`로 설정하세요 — 포트 기본값도 각각 22 / 21로 자동 적용됩니다.
 
 ## (선택) AI 코딩 툴 세션 충돌 방지
 

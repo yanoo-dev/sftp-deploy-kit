@@ -15,7 +15,7 @@ async function main() {
   const v = parseFlags(['page', 'only', 'quiet']);
   v.page = v.page || firstPositional();
   requireFlags(v, ['page'],
-    'npm run deploy:check -- sample-page [--only=path1,path2]');
+    'npx sftp-kit deploy:check --page=sample-page [--only=path1,path2]');
 
   const manifestPath = join('deploy', `${v.page}.deploy.json`);
   if (!existsSync(manifestPath)) {

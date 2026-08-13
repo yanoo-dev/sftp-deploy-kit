@@ -35,7 +35,7 @@ async function main() {
   const v = parseFlags(['page', 'backup', 'force', 'only', 'quiet']);
   v.page = v.page || firstPositional();
   requireFlags(v, ['page'],
-    'npm run deploy:backup -- sample-page [--backup=YYYYMMDD_HHMMSS] [--force] [--only=path1,path2]');
+    'npx sftp-kit deploy:backup --page=sample-page [--backup=YYYYMMDD_HHMMSS] [--force] [--only=path1,path2]');
 
   const force = v.force !== undefined;
   const backupId = v.backup || makeStamp();
@@ -85,7 +85,7 @@ async function main() {
     console.error('\n⚠️  원격이 우리가 마지막으로 배포한 내용 이후 바뀐 파일이 있습니다 — 다른 사람이 이미 올렸을 수 있습니다:');
     drifted.forEach((rel) => console.error(`   - ${rel}`));
     if (!force) {
-      console.error(`\n내용을 확인한 뒤 계속하려면: npm run deploy:backup -- --page=${v.page} --force`);
+      console.error(`\n내용을 확인한 뒤 계속하려면: npx sftp-kit deploy:backup --page=${v.page} --force`);
       process.exit(1);
     }
     console.error('\n--force 지정됨 — 경고만 남기고 계속 진행합니다.');
@@ -106,7 +106,7 @@ async function main() {
   if (stalePrevious.length > 0) {
     console.log(`   정리: 이전 deploy 백업 ${stalePrevious.length}개 삭제`);
   }
-  console.log(`   롤백: npm run deploy:rollback -- --page=${v.page} --backup=${backupId}`);
+  console.log(`   롤백: npx sftp-kit deploy:rollback --page=${v.page} --backup=${backupId}`);
 }
 
 main().catch((err) => {

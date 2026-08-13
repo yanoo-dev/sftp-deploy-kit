@@ -77,7 +77,7 @@ async function main() {
   console.log('\n[init] 완료. 다음 순서:');
   console.log('  1. .vscode/sftp.json 에서 host/username/password/remotePath 채우기');
   console.log(`  2. deploy/${manifestName}.deploy.json 에서 remoteRoot/files 채우기`);
-  console.log('  3. npx sftp-kit pull -- --paths="..." 로 소스 받기');
+  console.log('  3. npx sftp-kit pull --exclude="logs,tmp" (전체 미러링) 또는 --paths="..." (일부만) 로 소스 받기');
 }
 
 main().catch((err) => {

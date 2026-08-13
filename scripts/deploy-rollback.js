@@ -34,7 +34,7 @@ async function main() {
   const v = parseFlags(['page', 'backup', 'only']);
   v.page = v.page || firstPositional();
   requireFlags(v, ['page'],
-    'npm run deploy:rollback -- sample-page [--backup=YYYYMMDD_HHMMSS] [--only=path1,path2]');
+    'npx sftp-kit deploy:rollback --page=sample-page [--backup=YYYYMMDD_HHMMSS] [--only=path1,path2]');
 
   const baseDir = 'backups';
   if (!existsSync(baseDir)) {

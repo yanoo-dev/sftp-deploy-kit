@@ -24,9 +24,9 @@ const deployDir = join(PROJECT_ROOT, 'deploy');
  * manifest 기반 안전 업로드
  *
  * 사용:
- *   npm run upload
- *   npm run upload -- my-page
- *   npm run upload -- my-page --only=css/theme.css,js/widget.js
+ *   npx sftp-kit upload
+ *   npx sftp-kit upload my-page
+ *   npx sftp-kit upload my-page --only=css/theme.css,js/widget.js
  *
  * manifest가 하나면 이름을 생략할 수 있다.
  * 여러 개면 배포 묶음 이름을 명시해야 한다.
@@ -114,7 +114,7 @@ function resolveManifestName(manifests, requested) {
 
   throw new Error(
     `manifest가 여러 개입니다. 업로드할 묶음을 지정하세요.\n` +
-    `사용법: npm run upload -- <이름>\n` +
+    `사용법: npx sftp-kit upload <이름>\n` +
     `사용 가능: ${manifests.join(', ')}`,
   );
 }

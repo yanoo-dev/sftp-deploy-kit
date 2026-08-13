@@ -44,4 +44,22 @@ if (result.error) {
   console.error(result.error.message);
   process.exit(1);
 }
-process.exit(result.status ?? 1);
+if (result.status !== 0) {
+  process.exit(result.status ?? 1);
+}
+
+// pull 성공 직후엔 서버측 .git 잔여물도 항상 같이 정리한다
+if (cmd === 'pull') {
+  const cleanup = spawnSync(
+    process.execPath,
+    [join(PACKAGE_ROOT, COMMANDS['remove-git']), ...rest],
+    { stdio: 'inherit', env: process.env },
+  );
+  if (cleanup.error) {
+    console.error(cleanup.error.message);
+    process.exit(1);
+  }
+  process.exit(cleanup.status ?? 1);
+}
+
+process.exit(0);

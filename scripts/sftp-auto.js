@@ -9,7 +9,7 @@ const DOWNLOAD_ON_OPEN_KEY = 'downloadOnOpen';
 const mode = process.argv[2];
 
 if (!['on', 'off', 'status'].includes(mode)) {
-  console.error('사용법: npm run sftp:auto -- on|off|status');
+  console.error('사용법: npx sftp-kit sftp:auto on|off|status');
   process.exit(1);
 }
 

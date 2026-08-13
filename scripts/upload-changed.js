@@ -17,8 +17,8 @@ const deployDir = join(PROJECT_ROOT, 'deploy');
  * 워킹트리 기준으로 "지금 바뀐 파일"만 자동으로 골라 업로드한다
  *
  * 사용:
- *   npm run upload:changed
- *   npm run upload:changed -- gj-lms   (manifest가 여러 개일 때 지정)
+ *   npx sftp-kit upload:changed
+ *   npx sftp-kit upload:changed gj-lms   (manifest가 여러 개일 때 지정)
  *
  * 커밋은 "완료된 것"만 남기는 용도라 업로드 트리거로 안 쓴다. 대신
  * git status(스테이징+비스테이징+신규, 삭제 제외)로 지금 바뀐 파일을 구하고,
@@ -94,7 +94,7 @@ function resolveManifestName(manifests, requested) {
     return manifests[0];
   }
   throw new Error(
-    `manifest가 여러 개입니다. npm run upload:changed -- <이름>\n사용 가능: ${manifests.join(', ')}`,
+    `manifest가 여러 개입니다. npx sftp-kit upload:changed <이름>\n사용 가능: ${manifests.join(', ')}`,
   );
 }
 
@@ -140,8 +140,8 @@ function toManifestRelative(repoRelPath, localRoot) {
 }
 
 function runNodeScript(script, ...args) {
-  const result = spawnSync(process.execPath, [join(ROOT, script), ...args], {
-    cwd: ROOT,
+  const result = spawnSync(process.execPath, [join(PACKAGE_ROOT, script), ...args], {
+    cwd: PROJECT_ROOT,
     stdio: 'inherit',
     env: process.env,
   });
