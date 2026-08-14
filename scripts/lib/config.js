@@ -7,6 +7,17 @@ import { join } from 'node:path';
 const ROOT = process.cwd();
 
 /**
+ * 끝 슬래시를 정리하되, 루트('/') 자체는 빈 문자열로 지워버리지 않는다
+ *
+ * '/foo/' → '/foo', '/' → '/', '' → ''
+ */
+function normalizeRoot(raw) {
+  const s = String(raw || '');
+  const stripped = s.replace(/\/+$/, '');
+  return stripped || (s ? '/' : '');
+}
+
+/**
  * 접속/경로 설정을 단일 소스로 로드
  *
  * 우선순위: .vscode/sftp.json → .env (폴백). VS Code SFTP 설정 하나로 통일해
@@ -27,7 +38,7 @@ export function loadConfig() {
       password: j.password,
       privateKeyPath: j.privateKeyPath || null,
       passphrase: j.passphrase || null,
-      remoteRoot: String(j.remotePath || '').replace(/\/+$/, ''),
+      remoteRoot: normalizeRoot(j.remotePath),
       localRoot: j.context || 'web',
       source: '.vscode/sftp.json',
     };
@@ -41,7 +52,7 @@ export function loadConfig() {
     password: process.env.SFTP_PASSWORD,
     privateKeyPath: process.env.SFTP_PRIVATE_KEY || null,
     passphrase: process.env.SFTP_PASSPHRASE || null,
-    remoteRoot: String(process.env.SFTP_REMOTE_ROOT || '').replace(/\/+$/, ''),
+    remoteRoot: normalizeRoot(process.env.SFTP_REMOTE_ROOT),
     localRoot: process.env.SFTP_LOCAL_ROOT || 'web',
     source: '.env',
   };
