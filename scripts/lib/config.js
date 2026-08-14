@@ -42,6 +42,7 @@ export function loadConfig() {
       pullRemoteRoot: j.pullRemoteRoot ? normalizeRoot(j.pullRemoteRoot) : '',
       localRoot: j.context || 'web',
       pullExclude: j.pullExclude || '',
+      skipGitTrack: !!j.skipGitTrack,
       source: '.vscode/sftp.json',
     };
   }
@@ -58,6 +59,7 @@ export function loadConfig() {
     pullRemoteRoot: process.env.SFTP_PULL_REMOTE_ROOT ? normalizeRoot(process.env.SFTP_PULL_REMOTE_ROOT) : '',
     localRoot: process.env.SFTP_LOCAL_ROOT || 'web',
     pullExclude: process.env.SFTP_PULL_EXCLUDE || '',
+    skipGitTrack: process.env.SFTP_SKIP_GIT_TRACK === '1',
     source: '.env',
   };
 }

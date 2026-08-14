@@ -66,9 +66,12 @@ function main() {
     }
   }
 
-  console.log('[upload] 순서: track → check → backup → deploy\n');
+  const steps = cfg.skipGitTrack ? 'check → backup → deploy' : 'track → check → backup → deploy';
+  console.log(`[upload] 순서: ${steps}\n`);
 
-  runNodeScript('scripts/git-track.js');
+  if (!cfg.skipGitTrack) {
+    runNodeScript('scripts/git-track.js');
+  }
   runNodeScript('scripts/deploy-check.js', `--page=${page}`, ...onlyArgs);
   runNodeScript('scripts/deploy-backup.js', `--page=${page}`, ...onlyArgs);
   runNodeScript('scripts/deploy.js', `--page=${page}`, ...onlyArgs);
