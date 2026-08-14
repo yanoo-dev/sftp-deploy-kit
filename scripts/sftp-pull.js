@@ -8,8 +8,9 @@ import { loadConfig } from './lib/config.js';
  * 원격 원본을 로컬 소스 폴더(cfg.localRoot, 기본 web) 아래로 내려받는다
  *
  * --paths 를 주면 그 파일들만 선택적으로 받고, 생략하면 remoteRoot 전체를
- * localRoot 로 재귀 미러링한다. --exclude="logs,tmp,datas" 로 이름 일치하는
- * 폴더/파일을 미러링에서 제외할 수 있다.
+ * localRoot 로 재귀 미러링한다. --exclude="logs,tmp,sessions" 로 이름 일치하는
+ * 폴더/파일을 미러링에서 제외할 수 있다. --exclude 생략 시 .vscode/sftp.json의
+ * pullExclude(또는 .env의 SFTP_PULL_EXCLUDE)를 기본값으로 쓴다.
  * remoteRoot 는 --remote-root 인자 우선, 생략 시 .vscode/sftp.json(remotePath)/.env 의 SFTP_REMOTE_ROOT 를 쓴다.
  */
 async function main() {
@@ -40,7 +41,7 @@ async function main() {
   }
 
   const excludeNames = new Set(
-    (v.exclude || '').split(',').map((s) => s.trim()).filter(Boolean),
+    (v.exclude || cfg.pullExclude || '').split(',').map((s) => s.trim()).filter(Boolean),
   );
   const filter = excludeNames.size
     ? (fullPath) => !excludeNames.has(fullPath.split('/').pop())

@@ -40,6 +40,7 @@ export function loadConfig() {
       passphrase: j.passphrase || null,
       remoteRoot: normalizeRoot(j.remotePath),
       localRoot: j.context || 'web',
+      pullExclude: j.pullExclude || '',
       source: '.vscode/sftp.json',
     };
   }
@@ -54,6 +55,7 @@ export function loadConfig() {
     passphrase: process.env.SFTP_PASSPHRASE || null,
     remoteRoot: normalizeRoot(process.env.SFTP_REMOTE_ROOT),
     localRoot: process.env.SFTP_LOCAL_ROOT || 'web',
+    pullExclude: process.env.SFTP_PULL_EXCLUDE || '',
     source: '.env',
   };
 }
