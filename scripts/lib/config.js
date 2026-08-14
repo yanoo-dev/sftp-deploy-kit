@@ -11,7 +11,7 @@ const ROOT = process.cwd();
  *
  * '/foo/' → '/foo', '/' → '/', '' → ''
  */
-function normalizeRoot(raw) {
+export function normalizeRoot(raw) {
   const s = String(raw || '');
   const stripped = s.replace(/\/+$/, '');
   return stripped || (s ? '/' : '');
@@ -39,6 +39,7 @@ export function loadConfig() {
       privateKeyPath: j.privateKeyPath || null,
       passphrase: j.passphrase || null,
       remoteRoot: normalizeRoot(j.remotePath),
+      pullRemoteRoot: j.pullRemoteRoot ? normalizeRoot(j.pullRemoteRoot) : '',
       localRoot: j.context || 'web',
       pullExclude: j.pullExclude || '',
       source: '.vscode/sftp.json',
@@ -54,6 +55,7 @@ export function loadConfig() {
     privateKeyPath: process.env.SFTP_PRIVATE_KEY || null,
     passphrase: process.env.SFTP_PASSPHRASE || null,
     remoteRoot: normalizeRoot(process.env.SFTP_REMOTE_ROOT),
+    pullRemoteRoot: process.env.SFTP_PULL_REMOTE_ROOT ? normalizeRoot(process.env.SFTP_PULL_REMOTE_ROOT) : '',
     localRoot: process.env.SFTP_LOCAL_ROOT || 'web',
     pullExclude: process.env.SFTP_PULL_EXCLUDE || '',
     source: '.env',
