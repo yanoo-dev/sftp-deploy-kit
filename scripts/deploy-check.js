@@ -1,8 +1,8 @@
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { loadConfig } from './lib/config.js';
-import { parseFlags, requireFlags, firstPositional } from './lib/args.js';
-import { loadDeployManifest, filterOnly } from './lib/manifest.js';
+import { parseFlags, firstPositional } from './lib/args.js';
+import { loadDeployManifest, filterOnly, resolvePageName } from './lib/manifest.js';
 
 /**
  * 배포 manifest 를 검증한다
@@ -13,8 +13,7 @@ import { loadDeployManifest, filterOnly } from './lib/manifest.js';
  */
 async function main() {
   const v = parseFlags(['page', 'only', 'quiet']);
-  v.page = v.page || firstPositional();
-  requireFlags(v, ['page'],
+  v.page = resolvePageName(v.page || firstPositional(),
     'npx sftp-kit deploy:check --page=sample-page [--only=path1,path2]');
 
   const manifestPath = join('deploy', `${v.page}.deploy.json`);

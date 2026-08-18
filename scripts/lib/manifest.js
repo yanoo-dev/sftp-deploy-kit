@@ -108,6 +108,47 @@ function toPosix(value) {
 }
 
 /**
+ * --page 없이 호출됐을 때 deploy/ 안 manifest가 하나뿐이면 자동으로 그걸 쓴다
+ *
+ * upload.js/upload-changed.js는 원래 이 자동 해석을 갖고 있었는데
+ * deploy/deploy-check/deploy-backup/deploy-rollback 4개는 --page를 항상
+ * 강제해서 매니페스트가 하나뿐인 프로젝트에서도 매번 --page를 붙여야 했다.
+ * 그 불일치를 없애기 위해 공통으로 뺀 것 — requested가 있으면 존재 여부만
+ * 검증하고, 없으면 개수에 따라 자동/에러 처리한다.
+ */
+export function resolvePageName(requested, usage) {
+  const deployDir = 'deploy';
+  if (!existsSync(deployDir)) {
+    console.error(`deploy 폴더 없음: ${deployDir}`);
+    process.exit(1);
+  }
+
+  const manifests = readdirSync(deployDir)
+    .filter((name) => name.endsWith('.deploy.json'))
+    .map((name) => name.replace(/\.deploy\.json$/, ''))
+    .sort();
+
+  if (requested) {
+    if (!manifests.includes(requested)) {
+      console.error(`manifest를 찾을 수 없습니다: ${requested}\n사용 가능: ${manifests.join(', ')}`);
+      process.exit(1);
+    }
+    return requested;
+  }
+
+  if (manifests.length === 1) {
+    return manifests[0];
+  }
+
+  if (manifests.length === 0) {
+    console.error('deploy/*.deploy.json manifest가 없습니다.');
+  } else {
+    console.error(`manifest가 여러 개입니다. --page로 지정하세요.\n사용법: ${usage}\n사용 가능: ${manifests.join(', ')}`);
+  }
+  process.exit(1);
+}
+
+/**
  * --only 로 지정된 부분집합만 남긴다
  *
  * 콤마로 구분된 상대경로 목록을 받아 manifest 파일 목록 중 그것만 남긴다.

@@ -2,8 +2,8 @@ import { dirname, join } from 'node:path';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { withSftp } from './lib/sftp.js';
 import { loadConfig } from './lib/config.js';
-import { parseFlags, requireFlags, firstPositional } from './lib/args.js';
-import { loadDeployManifest, filterOnly } from './lib/manifest.js';
+import { parseFlags, firstPositional } from './lib/args.js';
+import { loadDeployManifest, filterOnly, resolvePageName } from './lib/manifest.js';
 
 /**
  * 정렬 가능한 타임스탬프(YYYYMMDD_HHMMSS) 생성
@@ -33,8 +33,7 @@ function makeStamp() {
  */
 async function main() {
   const v = parseFlags(['page', 'backup', 'force', 'only', 'quiet']);
-  v.page = v.page || firstPositional();
-  requireFlags(v, ['page'],
+  v.page = resolvePageName(v.page || firstPositional(),
     'npx sftp-kit deploy:backup --page=sample-page [--backup=YYYYMMDD_HHMMSS] [--force] [--only=path1,path2]');
 
   const force = v.force !== undefined;

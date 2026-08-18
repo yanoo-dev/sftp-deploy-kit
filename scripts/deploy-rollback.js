@@ -2,8 +2,8 @@ import { join, relative, sep } from 'node:path';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { uploadFiles } from './lib/sftp.js';
 import { loadConfig } from './lib/config.js';
-import { parseFlags, requireFlags, firstPositional } from './lib/args.js';
-import { filterOnly } from './lib/manifest.js';
+import { parseFlags, firstPositional } from './lib/args.js';
+import { filterOnly, resolvePageName } from './lib/manifest.js';
 import { confirmUpload } from './lib/confirm-upload.js';
 
 /**
@@ -32,8 +32,7 @@ function collectFiles(dir) {
  */
 async function main() {
   const v = parseFlags(['page', 'backup', 'only']);
-  v.page = v.page || firstPositional();
-  requireFlags(v, ['page'],
+  v.page = resolvePageName(v.page || firstPositional(),
     'npx sftp-kit deploy:rollback --page=sample-page [--backup=YYYYMMDD_HHMMSS] [--only=path1,path2]');
 
   const baseDir = 'backups';

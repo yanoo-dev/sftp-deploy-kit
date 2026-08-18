@@ -2,8 +2,8 @@ import { join, dirname } from 'node:path';
 import { existsSync, mkdirSync, copyFileSync } from 'node:fs';
 import { uploadFiles } from './lib/sftp.js';
 import { loadConfig } from './lib/config.js';
-import { parseFlags, requireFlags, firstPositional } from './lib/args.js';
-import { loadDeployManifest, filterOnly } from './lib/manifest.js';
+import { parseFlags, firstPositional } from './lib/args.js';
+import { loadDeployManifest, filterOnly, resolvePageName } from './lib/manifest.js';
 import { confirmUpload } from './lib/confirm-upload.js';
 
 /**
@@ -14,8 +14,7 @@ import { confirmUpload } from './lib/confirm-upload.js';
  */
 async function main() {
   const v = parseFlags(['page', 'only', 'quiet']);
-  v.page = v.page || firstPositional();
-  requireFlags(v, ['page'],
+  v.page = resolvePageName(v.page || firstPositional(),
     'npx sftp-kit deploy --page=sample-page [--only=path1,path2]');
 
   const manifestPath = join('deploy', `${v.page}.deploy.json`);
