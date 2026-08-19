@@ -1,17 +1,12 @@
-import { EventEmitter } from 'node:events';
-import { mkdirSync } from 'node:fs';
-import { join } from 'node:path';
 import { Client as FtpClient } from 'basic-ftp';
 
 /**
  * basic-ftp를 ssh2-sftp-client와 같은 메서드 이름으로 감싼 어댑터
  *
- * withSftp()/uploadFiles()가 프로토콜과 무관하게 동일한 코드로 동작하도록,
- * connect/end/exists/mkdir/fastGet/fastPut/downloadDir을 맞춰 제공한다.
- * ssh2-sftp-client와 마찬가지로 EventEmitter를 상속해 downloadDir 중
- * 파일마다 'download' 이벤트를 emit한다(진행상황 로그용).
+ * withSftp()/uploadFiles()/downloadDirDiff()가 프로토콜과 무관하게 동일한 코드로
+ * 동작하도록, connect/end/exists/mkdir/fastGet/fastPut/list를 맞춰 제공한다.
  */
-export class FtpClientAdapter extends EventEmitter {
+export class FtpClientAdapter {
   #client = new FtpClient();
 
   async connect(config) {
@@ -52,27 +47,7 @@ export class FtpClientAdapter extends EventEmitter {
     await this.#client.downloadTo(local, remote);
   }
 
-  /**
-   * remoteDir을 localDir로 재귀 다운로드 (basic-ftp엔 필터 있는 재귀 다운로드가 없어 직접 구현)
-   *
-   * options.filter(fullPath, isDir)가 false를 반환하는 항목은 건너뛴다.
-   */
-  async downloadDir(remoteDir, localDir, options = {}) {
-    const { filter } = options;
-    mkdirSync(localDir, { recursive: true });
-    const entries = await this.#client.list(remoteDir);
-    for (const entry of entries) {
-      const remotePath = `${remoteDir}/${entry.name}`;
-      if (filter && !filter(remotePath, entry.isDirectory)) {
-        continue;
-      }
-      const localPath = join(localDir, entry.name);
-      if (entry.isDirectory) {
-        await this.downloadDir(remotePath, localPath, options);
-      } else {
-        await this.#client.downloadTo(localPath, remotePath);
-        this.emit('download', { source: remotePath, destination: localPath });
-      }
-    }
+  async list(remoteDir) {
+    return this.#client.list(remoteDir);
   }
 }

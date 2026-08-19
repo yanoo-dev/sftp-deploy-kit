@@ -1,6 +1,7 @@
 import { dirname, join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { withSftp } from './lib/sftp.js';
+import { downloadDirDiff } from './lib/download-diff.js';
 import { parseFlags } from './lib/args.js';
 import { loadConfig, normalizeRoot } from './lib/config.js';
 
@@ -8,9 +9,11 @@ import { loadConfig, normalizeRoot } from './lib/config.js';
  * 원격 원본을 로컬 소스 폴더(cfg.localRoot, 기본 web) 아래로 내려받는다
  *
  * --paths 를 주면 그 파일들만 선택적으로 받고, 생략하면 remoteRoot 전체를
- * localRoot 로 재귀 미러링한다. --exclude="logs,tmp,sessions" 로 이름 일치하는
- * 폴더/파일을 미러링에서 제외할 수 있다. --exclude 생략 시 .vscode/sftp.json의
- * pullExclude(또는 .env의 SFTP_PULL_EXCLUDE)를 기본값으로 쓴다.
+ * localRoot 로 재귀 미러링한다. 전체 미러링은 로컬에 이미 같은 파일(크기+수정시각
+ * 일치)이 있으면 건너뛴다(downloadDirDiff, 매번 전체 재전송하던 문제 해결).
+ * --exclude="logs,tmp,sessions" 로 이름 일치하는 폴더/파일을 미러링에서 제외할 수
+ * 있다. --exclude 생략 시 .vscode/sftp.json의 pullExclude(또는 .env의
+ * SFTP_PULL_EXCLUDE)를 기본값으로 쓴다.
  * remoteRoot 는 --remote-root 인자 우선, 생략 시 .vscode/sftp.json(pullRemoteRoot → remotePath 순)
  * 또는 .env(SFTP_PULL_REMOTE_ROOT → SFTP_REMOTE_ROOT 순)를 쓴다. remotePath(계정 루트)와
  * pull 대상 실제 경로(예: 계정 루트 아래 html/ 서브폴더)가 다른 경우 pullRemoteRoot로 명시한다.
@@ -50,16 +53,23 @@ async function main() {
     : null;
 
   mkdirSync(localRoot, { recursive: true });
-  let count = 0;
+  let downloaded = 0;
+  let skipped = 0;
   await withSftp(async (client) => {
-    client.on('download', ({ source }) => {
-      count += 1;
-      console.log(`받음(${count}): ${source}`);
+    await downloadDirDiff(client, remoteRoot, localRoot, {
+      filter,
+      onProgress: ({ action, source }) => {
+        if (action === 'download') {
+          downloaded += 1;
+          console.log(`받음(${downloaded}): ${source}`);
+        } else {
+          skipped += 1;
+        }
+      },
     });
-    await client.downloadDir(remoteRoot, localRoot, { filter });
   });
   const excludeNote = excludeNames.size ? ` (제외: ${[...excludeNames].join(', ')})` : '';
-  console.log(`완료: 전체 미러링 ${count}개 ${remoteRoot} → ${localRoot}${excludeNote}`);
+  console.log(`완료: ${downloaded}개 받음, ${skipped}개 동일해서 건너뜀 → ${remoteRoot} → ${localRoot}${excludeNote}`);
 }
 
 main().catch((err) => {
