@@ -1,5 +1,5 @@
 import { join, dirname } from 'node:path';
-import { existsSync, mkdirSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, copyFileSync, utimesSync } from 'node:fs';
 import { uploadFiles } from './lib/sftp.js';
 import { loadConfig } from './lib/config.js';
 import { parseFlags, firstPositional } from './lib/args.js';
@@ -52,6 +52,13 @@ async function main() {
   await uploadFiles(entries, (local, remote) => {
     console.log(`  올림: ${local} → ${remote}`);
     uploaded.push(remote);
+    // 원격 mtime은 실제 fastPut 완료 시각인데 로컬 mtime은 그보다 이전(마지막 저장 시각)에
+    // 머물러있으면, pull의 shouldDownload()가 "원격이 더 최신"으로 오판해 방금 올린 내용을
+    // 그대로 다시 받아온다. 배치 업로드가 60초(MTIME_TOLERANCE_MS)를 넘게 걸리면 매번
+    // 재발하므로, 업로드 성공 직후 로컬 mtime을 지금 시각으로 맞춰 다음 pull에서 "동일 파일"로
+    // 판정되게 한다.
+    const now = new Date();
+    utimesSync(local, now, now);
   });
 
   // 업로드 직후 "마지막으로 실제 배포한 내용"을 별도 기준점에 저장한다.
