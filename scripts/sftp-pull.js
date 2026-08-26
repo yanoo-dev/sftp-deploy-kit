@@ -1,5 +1,5 @@
-import { dirname, join } from 'node:path';
-import { mkdirSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
+import { copyFileSync, mkdirSync } from 'node:fs';
 import { withSftp } from './lib/sftp.js';
 import { downloadDirDiff } from './lib/download-diff.js';
 import { parseFlags } from './lib/args.js';
@@ -17,7 +17,18 @@ import { loadConfig, normalizeRoot } from './lib/config.js';
  * remoteRoot 는 --remote-root 인자 우선, 생략 시 .vscode/sftp.json(pullRemoteRoot → remotePath 순)
  * 또는 .env(SFTP_PULL_REMOTE_ROOT → SFTP_REMOTE_ROOT 순)를 쓴다. remotePath(계정 루트)와
  * pull 대상 실제 경로(예: 계정 루트 아래 html/ 서브폴더)가 다른 경우 pullRemoteRoot로 명시한다.
+ *
+ * 받은 파일은 그 자리에서 backups/.last-deployed/ 에도 같이 기록한다 — pull로 받은
+ * 내용은 정의상 "지금 서버에 있는 그대로"라, deploy.js를 거친 적 없어도 이미
+ * 배포 확인된 것으로 봐야 한다. 이걸 안 하면 pull만 받고 커밋하려 할 때
+ * pre-commit 훅이 매번 "업로드 기록 없음"으로 잘못 막는다.
  */
+function markDeployed(localFile, rel) {
+  const dest = join('backups', '.last-deployed', rel);
+  mkdirSync(dirname(dest), { recursive: true });
+  copyFileSync(localFile, dest);
+}
+
 async function main() {
   const v = parseFlags(['remote-root', 'paths', 'exclude']);
 
@@ -38,6 +49,7 @@ async function main() {
         const local = join(localRoot, rel);
         mkdirSync(dirname(local), { recursive: true });
         await client.fastGet(remote, local);
+        markDeployed(local, rel);
         console.log(`받음: ${remote} → ${local}`);
       }
     });
@@ -58,9 +70,10 @@ async function main() {
   await withSftp(async (client) => {
     await downloadDirDiff(client, remoteRoot, localRoot, {
       filter,
-      onProgress: ({ action, source }) => {
+      onProgress: ({ action, source, destination }) => {
         if (action === 'download') {
           downloaded += 1;
+          markDeployed(destination, relative(localRoot, destination));
           console.log(`받음(${downloaded}): ${source}`);
         } else {
           skipped += 1;
