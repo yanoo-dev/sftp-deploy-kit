@@ -63,3 +63,20 @@ export function loadConfig() {
     source: '.env',
   };
 }
+
+/**
+ * 업로드에 실제 쓸 remoteRoot를 정하고, pull이 쓰는 경로와 다르면 경고한다
+ *
+ * manifest.remoteRoot가 있으면 그게 우선(cfg.remoteRoot는 폴백)이라, 정상 설정에서도
+ * "다르다"는 게 항상 문제인 건 아니다 — 다만 pullRemoteRoot를 별도로 지정해둔 프로젝트에서
+ * 업로드 경로와 pull 경로가 서로 다르면, "pull로 받은 위치"와 "실제 배포되는 위치"가
+ * 어긋나는 설정 실수일 가능성이 높다. 차단하지 않고 눈에 띄게 경고만 한다(의도된 구성일
+ * 수도 있어서 강제 중단은 과함).
+ */
+export function resolveUploadRoot(manifest, cfg) {
+  const remoteRoot = String((manifest && manifest.remoteRoot) || cfg.remoteRoot || '').replace(/\/+$/, '');
+  if (remoteRoot && cfg.pullRemoteRoot && cfg.pullRemoteRoot !== remoteRoot) {
+    console.warn(`⚠️ 업로드 경로(${remoteRoot})와 pull 경로(${cfg.pullRemoteRoot})가 서로 다릅니다 — pull로 받은 것과 실제 배포되는 위치가 어긋날 수 있습니다. .vscode/sftp.json의 remotePath/pullRemoteRoot(또는 manifest의 remoteRoot)를 확인하세요.`);
+  }
+  return remoteRoot;
+}

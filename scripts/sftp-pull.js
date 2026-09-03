@@ -67,14 +67,18 @@ async function main() {
   mkdirSync(localRoot, { recursive: true });
   let downloaded = 0;
   let skipped = 0;
+  const failed = [];
   await withSftp(async (client) => {
     await downloadDirDiff(client, remoteRoot, localRoot, {
       filter,
-      onProgress: ({ action, source, destination }) => {
+      onProgress: ({ action, source, destination, error }) => {
         if (action === 'download') {
           downloaded += 1;
           markDeployed(destination, relative(localRoot, destination));
           console.log(`받음(${downloaded}): ${source}`);
+        } else if (action === 'error') {
+          failed.push({ source, error });
+          console.warn(`  ⚠️ 못 받음(건너뜀): ${source} — ${error.message}`);
         } else {
           skipped += 1;
         }
@@ -83,6 +87,12 @@ async function main() {
   });
   const excludeNote = excludeNames.size ? ` (제외: ${[...excludeNames].join(', ')})` : '';
   console.log(`완료: ${downloaded}개 받음, ${skipped}개 동일해서 건너뜀 → ${remoteRoot} → ${localRoot}${excludeNote}`);
+
+  if (failed.length > 0) {
+    console.warn(`\n⚠️ ${failed.length}개 파일을 못 받고 건너뛰었습니다 — 목록(list)엔 있는데 실제로 없거나(서버측 삭제) 한글 파일명 인코딩 문제일 수 있습니다:`);
+    failed.forEach(({ source, error }) => console.warn(`  ⚠️ ${source} — ${error.message}`));
+    process.exitCode = 1;
+  }
 }
 
 main().catch((err) => {

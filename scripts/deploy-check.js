@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import { loadConfig } from './lib/config.js';
+import { loadConfig, resolveUploadRoot } from './lib/config.js';
 import { parseFlags, firstPositional } from './lib/args.js';
 import { loadDeployManifest, filterOnly, resolvePageName } from './lib/manifest.js';
 
@@ -40,7 +40,7 @@ async function main() {
     }
   }
 
-  const remoteRoot = manifest.remoteRoot || cfg.remoteRoot;
+  const remoteRoot = resolveUploadRoot(manifest, cfg);
   console.log(`\n대상 ${manifest.files.length}개 · 존재 ${ok} · 누락 ${missing}`);
   console.log(`remoteRoot: ${remoteRoot}`);
   if (missing > 0) {

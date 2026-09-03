@@ -37,6 +37,11 @@ function main() {
   const manifestFiles = new Set(manifest.files);
   const localRoot = manifest.localRoot.replace(/\\/g, '/').replace(/\/+$/, '');
 
+  // git-track.js를 "바뀐 파일 목록"을 구하기 전에 먼저 돌려야 한다 — 완전히 새로 생긴 파일은
+  // .gitignore의 auto-track 허용목록에 아직 없어서 git status에 안 잡히고, 그 상태로 목록을
+  // 구하면 이번 실행에서 영영 누락된다(track이 나중에 돌아도 이미 뽑은 목록엔 반영 안 됨).
+  runNodeScript('scripts/git-track.js');
+
   const changed = getWorkingTreeChangedFiles();
   const target = changed
     .map((repoRelPath) => toManifestRelative(repoRelPath, localRoot))
@@ -60,12 +65,11 @@ function main() {
   console.log(`[upload:changed] 배포 묶음: ${page}`);
   console.log(`[upload:changed] 변경 파일 ${unique.length}개:`);
   unique.forEach((f) => console.log(`  - ${f}`));
-  console.log('[upload:changed] 순서: track → check → backup → deploy\n');
+  console.log('[upload:changed] 순서: track(완료) → check → backup → deploy\n');
 
   const onlyArg = `--only=${unique.join(',')}`;
   const forceArgs = force ? ['--force'] : [];
 
-  runNodeScript('scripts/git-track.js');
   runNodeScript('scripts/deploy-check.js', `--page=${page}`, onlyArg, '--quiet');
   runNodeScript('scripts/deploy-backup.js', `--page=${page}`, onlyArg, '--quiet', ...forceArgs);
   runNodeScript('scripts/deploy.js', `--page=${page}`, onlyArg, '--quiet');

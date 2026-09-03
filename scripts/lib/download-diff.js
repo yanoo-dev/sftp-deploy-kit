@@ -77,8 +77,15 @@ export async function downloadDirDiff(client, remoteDir, localDir, options = {})
     }
 
     if (shouldDownload(localPath, size, mtimeMs)) {
-      await client.fastGet(remotePath, localPath);
-      onProgress?.({ action: 'download', source: remotePath, destination: localPath });
+      try {
+        await client.fastGet(remotePath, localPath);
+        onProgress?.({ action: 'download', source: remotePath, destination: localPath });
+      } catch (err) {
+        // 목록(list)엔 있는데 실제 전송(fastGet)에서 없다고 나오는 경우가 있다
+        // (한글 파일명 NFC/NFD 정규화 불일치, 목록 조회 이후 서버측 삭제 등).
+        // 파일 하나 때문에 전체 pull이 죽지 않도록 건너뛰고 마지막에 모아서 보고한다.
+        onProgress?.({ action: 'error', source: remotePath, destination: localPath, error: err });
+      }
     } else {
       onProgress?.({ action: 'skip', source: remotePath, destination: localPath });
     }

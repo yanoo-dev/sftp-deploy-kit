@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { withSftp } from './lib/sftp.js';
-import { loadConfig } from './lib/config.js';
+import { loadConfig, resolveUploadRoot } from './lib/config.js';
 import { parseFlags, firstPositional } from './lib/args.js';
 import { loadDeployManifest, filterOnly, resolvePageName } from './lib/manifest.js';
 
@@ -48,7 +48,7 @@ async function main() {
   const cfg = loadConfig();
   const manifest = loadDeployManifest(manifestPath, cfg.localRoot, { quiet: v.quiet !== undefined });
   manifest.files = filterOnly(manifest.files, v.only);
-  const remoteRoot = String(manifest.remoteRoot || cfg.remoteRoot || '').replace(/\/+$/, '');
+  const remoteRoot = resolveUploadRoot(manifest, cfg);
   if (!remoteRoot) {
     console.error('remoteRoot 를 찾을 수 없습니다 (manifest 또는 sftp.json/.env).');
     process.exit(1);

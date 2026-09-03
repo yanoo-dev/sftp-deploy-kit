@@ -1,7 +1,7 @@
 import { join, dirname } from 'node:path';
 import { existsSync, mkdirSync, copyFileSync, utimesSync } from 'node:fs';
 import { uploadFiles } from './lib/sftp.js';
-import { loadConfig } from './lib/config.js';
+import { loadConfig, resolveUploadRoot } from './lib/config.js';
 import { parseFlags, firstPositional } from './lib/args.js';
 import { loadDeployManifest, filterOnly, resolvePageName } from './lib/manifest.js';
 import { confirmUpload } from './lib/confirm-upload.js';
@@ -36,7 +36,7 @@ async function main() {
     process.exit(1);
   }
 
-  const remoteRoot = String(manifest.remoteRoot || cfg.remoteRoot || '').replace(/\/+$/, '');
+  const remoteRoot = resolveUploadRoot(manifest, cfg);
   if (!remoteRoot) {
     console.error('remoteRoot 를 찾을 수 없습니다 (manifest 또는 sftp.json/.env).');
     process.exit(1);

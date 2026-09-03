@@ -44,11 +44,10 @@ if (result.error) {
   console.error(result.error.message);
   process.exit(1);
 }
-if (result.status !== 0) {
-  process.exit(result.status ?? 1);
-}
 
-// pull 성공 직후엔 서버측 .git 잔여물도 항상 같이 정리한다
+// pull은 일부 파일을 건너뛰어도(한글 파일명 인코딩 문제 등) exit code 1로 끝날 수 있다 —
+// 그래도 받은 파일들 사이에 서버측 .git 잔여물이 있을 수 있으니 정리는 항상 시도하고,
+// 원래의 실패 상태(pull이 몇 개 건너뛰었는지)는 그대로 유지해서 최종 exit code로 보고한다.
 if (cmd === 'pull') {
   const cleanup = spawnSync(
     process.execPath,
@@ -59,7 +58,11 @@ if (cmd === 'pull') {
     console.error(cleanup.error.message);
     process.exit(1);
   }
-  process.exit(cleanup.status ?? 1);
+  process.exit(result.status !== 0 ? (result.status ?? 1) : (cleanup.status ?? 1));
+}
+
+if (result.status !== 0) {
+  process.exit(result.status ?? 1);
 }
 
 process.exit(0);
