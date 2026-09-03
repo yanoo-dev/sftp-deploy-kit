@@ -62,6 +62,7 @@ export function loadDeployManifest(manifestPath, fallbackLocalRoot, options = {}
     ...manifest,
     localRoot,
     files: safeFiles,
+    blocked,
   };
 }
 
