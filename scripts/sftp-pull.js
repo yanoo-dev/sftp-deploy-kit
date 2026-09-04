@@ -57,6 +57,25 @@ async function main() {
     return;
   }
 
+  // --exclude 를 직접 주면 설정 파일(pullExclude)을 "덧붙이는" 게 아니라 통째로 대체한다.
+  // 설정에만 있던 항목(__uok__ 같은 백엔드 폴더)이 조용히 제외 목록에서 빠져 그대로 내려받아지는
+  // 사고가 실제로 있었기 때문에, 두 값이 다르면 실행 전에 눈에 띄게 경고한다(차단은 하지 않음 —
+  // 일부러 다른 범위로 받으려는 경우도 있어서).
+  if (v.exclude && cfg.pullExclude && v.exclude !== cfg.pullExclude) {
+    const onlyInConfig = cfg.pullExclude
+      .split(',')
+      .map((s) => s.trim())
+      .filter((name) => name && !v.exclude.split(',').map((x) => x.trim()).includes(name));
+
+    console.warn('\n⚠️ --exclude 를 직접 지정해서 sftp.json 의 pullExclude 설정을 덮어씁니다.');
+    console.warn(`   설정값: ${cfg.pullExclude}`);
+    console.warn(`   지정값: ${v.exclude}`);
+    if (onlyInConfig.length > 0) {
+      console.warn(`   ⚠️ 이번 실행에서 제외되지 않는 항목: ${onlyInConfig.join(', ')}`);
+    }
+    console.warn('   설정대로 받으려면 --exclude 를 빼고 실행하세요.\n');
+  }
+
   const excludeNames = new Set(
     (v.exclude || cfg.pullExclude || '').split(',').map((s) => s.trim()).filter(Boolean),
   );
