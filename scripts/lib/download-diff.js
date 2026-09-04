@@ -41,12 +41,38 @@ function countBareLineFeeds(buffer) {
 }
 
 /**
+ * 내용이 같을 때 원격 파일 크기로 나올 수 있는 값들을 계산한다
+ *
+ * 줄바꿈 표기 차이만으로 크기가 달라지는 조합이 두 가지 있다:
+ *  1) 줄바꿈 방식 — 로컬 LF(.gitattributes eol=lf) vs 원격 CRLF(FTP 서버 저장 방식)
+ *  2) 파일 맨 끝 줄바꿈 유무 — 에디터의 "insert final newline" 설정 등으로 한쪽에만 있음
+ * 둘 다 내용은 동일한데 크기만 다르므로, 이 조합들을 후보 크기로 만들어두고 원격 크기가
+ * 그중 하나와 맞으면 "안 바뀐 파일"로 판정한다. 크기 차이를 무조건 허용(±1 등)하면 진짜
+ * 1바이트 수정을 놓치므로, 로컬 파일이 실제로 LF로 끝나는지까지 보고 후보를 좁힌다.
+ */
+function candidateRemoteSizes(buffer, localSize) {
+  const bareLf = countBareLineFeeds(buffer);
+  const endsWithLf = buffer.length > 0 && buffer[buffer.length - 1] === 0x0a;
+  const sizes = new Set([localSize, localSize + bareLf]);
+
+  if (endsWithLf) {
+    sizes.add(localSize - 1);            // 원격엔 끝 LF 가 없음
+    sizes.add(localSize + bareLf - 2);   // CRLF 변환본 기준, 원격엔 끝 CRLF 가 없음
+  } else {
+    sizes.add(localSize + 1);            // 원격에만 끝 LF 가 있음
+    sizes.add(localSize + bareLf + 2);   // CRLF 변환본 기준, 원격에만 끝 CRLF 가 있음
+  }
+
+  return sizes;
+}
+
+/**
  * 로컬 파일이 원격과 같은지(크기+수정시각) 비교해 다시 받을지 정한다
  *
  * 로컬에 없으면 무조건 받는다. 있으면 크기가 다르거나 원격 수정시각이 로컬보다
  * MTIME_TOLERANCE_MS 넘게 앞서 있을 때만 다시 받고, 그 외엔 같은 파일로 보고 건너뛴다.
- * 크기가 다르더라도 CRLF 변환분을 감안하면 같은 크기가 되는 경우(위 countBareLineFeeds
- * 참고)는 실제로 안 바뀐 것으로 보고 건너뛴다.
+ * 크기가 다르더라도 줄바꿈 표기 차이(위 candidateRemoteSizes 참고)로 설명되는 경우는
+ * 실제로 안 바뀐 것으로 보고 건너뛴다.
  */
 function shouldDownload(localPath, size, mtimeMs) {
   if (!existsSync(localPath)) {
@@ -56,14 +82,14 @@ function shouldDownload(localPath, size, mtimeMs) {
   const stat = statSync(localPath);
 
   if (stat.size !== size) {
-    let matchesAfterCrlf = false;
+    let sameContent = false;
     try {
       const buffer = readFileSync(localPath);
-      matchesAfterCrlf = stat.size + countBareLineFeeds(buffer) === size;
+      sameContent = candidateRemoteSizes(buffer, stat.size).has(size);
     } catch {
-      matchesAfterCrlf = false;
+      sameContent = false;
     }
-    if (!matchesAfterCrlf) {
+    if (!sameContent) {
       return true;
     }
   }
