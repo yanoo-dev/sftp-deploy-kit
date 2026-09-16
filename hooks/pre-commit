@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# sftp-deploy-kit pre-commit — 스테이징된 파일이 서버에 실제 업로드된 상태인지 확인.
+# backups/.last-deployed/ 는 deploy/pull 이 남기는 "실제 배포된 내용" 기준점.
+# 여기와 다르면 아직 안 올라간 변경 → 커밋 차단 (급하면 git commit --no-verify 로 우회)
+# 양쪽 다 \r 을 제거하고 비교한다 — .gitattributes(eol=lf) 정규화 때문에 줄바꿈만 다른 오탐 방지.
+
+LOCAL_ROOT="__LOCAL_ROOT__"
+LAST_DEPLOYED="backups/.last-deployed"
+staged=$(git diff --cached --name-only --diff-filter=ACM -- "${LOCAL_ROOT}/*")
+
+[ -z "$staged" ] && exit 0
+
+not_uploaded=()
+
+while IFS= read -r file; do
+  rel="${file#${LOCAL_ROOT}/}"
+  snapshot="$LAST_DEPLOYED/$rel"
+
+  if [ ! -f "$snapshot" ]; then
+    not_uploaded+=("$file  (업로드 기록 없음)")
+    continue
+  fi
+
+  if ! diff -q <(git show ":$file" | LC_ALL=C tr -d '\r') <(LC_ALL=C tr -d '\r' < "$snapshot") > /dev/null 2>&1; then
+    not_uploaded+=("$file")
+  fi
+done <<< "$staged"
+
+if [ ${#not_uploaded[@]} -gt 0 ]; then
+  echo ""
+  echo "⛔ 커밋 차단 — 아직 서버에 업로드 안 된 변경이 있습니다:"
+  for f in "${not_uploaded[@]}"; do
+    echo "   - $f"
+  done
+  echo ""
+  echo "먼저 업로드:  npm run upload:changed"
+  echo "그래도 강행: git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+exit 0

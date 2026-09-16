@@ -7,6 +7,9 @@
     "password": "",
     "remotePath": "/path/on/server",
     "context": "web",
+    "pullRemoteRoot": "/path/on/server",
+    "pullExclude": "logs,tmp",
+    "skipGitTrack": false,
     "uploadOnSave": false,
     "downloadOnOpen": false
 }

@@ -11,6 +11,7 @@
   "files": [
     "bin",
     "scripts",
+    "hooks",
     "deploy/example.deploy.json",
     ".vscode/sftp.json.example",
     ".env.example",
@@ -28,7 +29,8 @@
     "dev:deploy": "node scripts/deploy.js",
     "dev:deploy:rollback": "node scripts/deploy-rollback.js",
     "dev:upload": "node scripts/upload.js",
-    "dev:upload:changed": "node scripts/upload-changed.js"
+    "dev:upload:changed": "node scripts/upload-changed.js",
+    "dev:hook:install": "node scripts/hook-install.js"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5",
