@@ -48,9 +48,32 @@ npm install -D github:yanoo-dev/sftp-deploy-kit
 ```bash
 npx sftp-kit init
 ```
-이 명령이 `.vscode/sftp.json`·`deploy/<이름>.deploy.json`(빈 템플릿), `.env`, `backups/`를 만들고, `package.json`에 `npm run` 스크립트 12개를 등록하고, `.gitignore`·`.gitattributes`에 필요한 줄을 넣습니다(있는 건 건드리지 않음). 이후부터는 전부 `npm run …`.
+정상이면 터미널에 이렇게 찍힙니다(이름은 답한 값):
+```
+[init] 생성: .vscode/sftp.json (context: "html")
+[init] 생성: deploy/mysite.deploy.json
+[init] 생성: .env (폴백용 — .vscode/sftp.json이 있으면 이건 안 씀)
+[init] 생성: backups/.gitkeep
+[init] package.json scripts 등록: init, pull, upload:changed, …
+[init] .gitignore 추가: .vscode/sftp.json, .env, deploy/*.deploy.json, backups/, node_modules/
+[init] .gitattributes 추가: * text=auto eol=lf
+[init] 완료. 다음 순서: …
+```
+이후부터는 전부 `npm run …`으로 실행합니다. 생성된 파일 확인:
+```bash
+ls -a .vscode deploy          # .vscode 는 점으로 시작하는 숨김 폴더 — ls -a 로 봐야 보임
+```
+Finder에서는 `⌘ ⇧ .` 로 숨김 파일을 켜야 `.vscode`가 보이고, VS Code 탐색기에는 기본으로 보입니다.
 
-**4. 접속정보 입력** — 3번이 만든 `.vscode/sftp.json`을 열어 채웁니다 (키 설명은 「초기 설정 3」).
+> 안 될 때
+> - `Missing script: "init"` → `npm run init`으로 실행한 것. 첫 1회는 `npx sftp-kit init`
+> - `[init] 이미 있음, 건너뜀: .vscode/sftp.json` → 이미 파일이 있는 것(clone한 레포에 들어있던 경우). 그 파일을 4번에서 그대로 채우면 됨
+> - 아무 것도 안 생김 → `pwd`로 지금 위치가 `package.json` 있는 프로젝트 루트인지 확인. init은 **현재 폴더**에 만듭니다
+
+**4. 접속정보 입력** — 3번이 만든 `.vscode/sftp.json`(숨김 폴더 안)을 열어 아래처럼 채웁니다. `host`·`username`·`password`·`remotePath`는 서버 담당자에게 받은 값, `context`는 3번에서 답한 소스 폴더명 (키 설명은 「초기 설정 3」).
+```bash
+code .vscode/sftp.json        # VS Code 로 열기 (또는 탐색기에서 .vscode 폴더 → sftp.json)
+```
 ```json
 {
   "protocol": "ftp",
@@ -65,7 +88,7 @@ npx sftp-kit init
 }
 ```
 
-**5. 올릴 범위 지정** — 3번이 만든 `deploy/<이름>.deploy.json`에 내가 작업하는 폴더만 적습니다 (「초기 설정 4」).
+**5. 올릴 범위 지정** — 3번이 만든 `deploy/<이름>.deploy.json`을 열어, `remoteRoot`(서버 기준 폴더)와 내가 작업하는 폴더만 적습니다. 어떤 폴더가 있는지 모르면 6번 `pull`을 먼저 하고 받아온 구조를 보고 채워도 됩니다 (「초기 설정 4」).
 ```json
 {
   "remoteRoot": "/html",
