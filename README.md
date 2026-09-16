@@ -113,6 +113,13 @@ npm run deploy:check -- --page=<이름>      # "manifest directory 없음" 줄�
 npm run pull
 git add -A && git commit -m "backup: 초기 pull"
 ```
+서버에 개발자의 `.gitignore`가 있으면 그것도 같이 내려와서(`html/.gitignore`) `assets`·`intro` 같은 폴더를 통째로 git 추적에서 빼버릴 수 있습니다. 그 폴더를 고쳐도 `git status`에 안 잡혀 `upload:changed`가 못 봅니다 — 5번 매니페스트에 넣은 폴더는 **한 번 강제 추적**해 두세요(그 뒤론 정상):
+```bash
+git ls-files html/assets | wc -l                                   # 0 이면 제외된 것
+git add -f html/assets/css html/assets/js html/pages/my-site      # 매니페스트에 넣은 폴더만
+git commit -m "track: 작업 폴더 강제 추적"
+```
+
 
 **7. 훅 설치** — 업로드 안 된 변경이 커밋되는 것을 막습니다.
 ```bash
