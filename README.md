@@ -19,18 +19,16 @@ npm update sftp-deploy-kit
 
 처음 한 번만 아래 순서대로. 이미 있는 단계는 건너뛰면 됩니다.
 
-| # | 할 일 | 명령 / 파일 |
-|---|---|---|
-| 1 | 코드 폴더 준비 | 레포가 있으면 `git clone …`, 없으면 빈 폴더에서 `git init` |
-| 2 | 키트 설치 | `npm init -y`(package.json 없을 때) → `npm install -D github:yanoo-dev/sftp-deploy-kit` |
-| 3 | 스크립트 등록 | `package.json`의 `scripts`에 아래 「초기 설정 1」 블록 복사 |
-| 4 | 설정 파일 생성 | `npm run init` — 로컬 소스 폴더명(예: `html`)·매니페스트 이름 답변 |
-| 5 | 접속정보 입력 | `.vscode/sftp.json` — `host`·`username`·`password`·`protocol`(sftp/ftp)·`remotePath`·`context`·`pullRemoteRoot`·`pullExclude` (「초기 설정 3」) |
-| 6 | 올릴 범위 지정 | `deploy/<이름>.deploy.json` — `remoteRoot` + `directories`(내가 작업하는 폴더만)·`files` (「초기 설정 4」) |
-| 7 | git 제외·줄바꿈 | `.gitignore`에 `.vscode/sftp.json` `.env` `deploy/*.deploy.json` `backups/` `node_modules/` / `.gitattributes`에 `* text=auto eol=lf` (「초기 설정 5」) |
-| 8 | 서버 소스 받기 | `npm run pull` → `git add -A && git commit -m "backup: 초기 pull"` (이 커밋이 "서버 원본" 기준점) |
-| 9 | 훅 설치 | `npm run hook:install` — 업로드 안 된 변경이 커밋되는 것 차단 |
-| 10 | 연결 확인 | 파일 하나 수정 → `npm run upload:changed`(y) → 서버에서 확인 → `git commit` (훅 통과하면 끝) |
+1. **코드 폴더 준비** — 레포가 있으면 `git clone …`, 없으면 빈 폴더에서 `git init`
+2. **키트 설치** — `npm init -y`(package.json 없을 때) → `npm install -D github:yanoo-dev/sftp-deploy-kit`
+3. **스크립트 등록** — `package.json`의 `scripts`에 아래 「초기 설정 1」 블록 복사
+4. **설정 파일 생성** — `npm run init` (로컬 소스 폴더명 예: `html`, 매니페스트 이름 답변)
+5. **접속정보 입력** — `.vscode/sftp.json`에 `host` `username` `password` `protocol`(sftp/ftp) `remotePath` `context` `pullRemoteRoot` `pullExclude` (「초기 설정 3」)
+6. **올릴 범위 지정** — `deploy/<이름>.deploy.json`에 `remoteRoot` + `directories`(내가 작업하는 폴더만) · `files` (「초기 설정 4」)
+7. **git 제외·줄바꿈** — `.gitignore`에 `.vscode/sftp.json` `.env` `deploy/*.deploy.json` `backups/` `node_modules/`, `.gitattributes`에 `* text=auto eol=lf` (「초기 설정 5」)
+8. **서버 소스 받기** — `npm run pull` → `git add -A && git commit -m "backup: 초기 pull"` (이 커밋이 "서버 원본" 기준점)
+9. **훅 설치** — `npm run hook:install` (업로드 안 된 변경이 커밋되는 것 차단)
+10. **연결 확인** — 파일 하나 수정 → `npm run upload:changed`(y) → 서버에서 확인 → `git commit` (훅 통과하면 끝)
 
 이후 평소 작업은 **수정 → `npm run upload:changed` → `git commit`** 반복. 서버를 남이 바꿨을 수 있으면 먼저 `npm run pull`. 명령·플래그가 헷갈리면 `npx sftp-kit --help`.
 
