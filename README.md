@@ -32,7 +32,7 @@ npm update sftp-deploy-kit
 | `html/` (소스 폴더 = 실제 작업 폴더) | `npm run pull` — 서버에서 받아오며 자동 생성 | 6 |
 | `.git/hooks/pre-commit` | `npm run hook:install` | 7 |
 
-**1. 프로젝트 루트 폴더 준비** — 직접 만든 이 폴더로 `cd`해서 들어간 뒤, 아래 명령은 전부 그 안에서 실행합니다. 이름은 자유(`web`, `my-site` 등). 소스 폴더(`html`)는 직접 만들지 않습니다 — 6번 `pull`이 이 루트 안에 자동 생성합니다.
+**1. 프로젝트 루트 폴더 준비** — 직접 만든 이 폴더로 `cd`해서 들어간 뒤, 아래 명령은 전부 그 안에서 실행합니다. 이름은 자유(`web`, `my-site` 등). 소스 폴더(`html`)는 직접 만들지 않습니다 — 6번 `pull`이 이 루트 안에 자동 생성합니다. **VS Code도 이 폴더를 루트로 여세요**(`code my-site`) — 상위 폴더를 열면 SFTP 확장이 `.vscode/sftp.json`을 못 찾아 왼쪽 아이콘이 안 뜹니다.
 ```bash
 mkdir my-site && cd my-site && git init
 # 레포가 이미 있으면 대신:  git clone <주소> my-site && cd my-site
