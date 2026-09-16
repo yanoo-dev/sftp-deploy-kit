@@ -30,7 +30,7 @@ npm update sftp-deploy-kit
 | `html/` (소스 폴더 = 실제 작업 폴더) | `npm run pull` — 서버에서 받아오며 자동 생성 | 8 |
 | `.git/hooks/pre-commit` | `npm run hook:install` | 9 |
 
-**1. 프로젝트 루트 폴더 준비** — 아래 명령은 전부 이 폴더에서 실행합니다. 소스 폴더(`web`/`html`)는 직접 만들지 않습니다(8번 `pull`이 자동 생성).
+**1. 프로젝트 루트 폴더 준비** — 직접 만든 이 폴더로 `cd`해서 들어간 뒤, 아래 명령은 전부 그 안에서 실행합니다. 이름은 자유(`web`, `my-site` 등). 소스 폴더(`html`)는 직접 만들지 않습니다 — 8번 `pull`이 이 루트 안에 자동 생성합니다.
 ```bash
 mkdir my-site && cd my-site && git init
 # 레포가 이미 있으면 대신:  git clone <주소> my-site && cd my-site
@@ -62,7 +62,7 @@ npm install -D github:yanoo-dev/sftp-deploy-kit
 }
 ```
 
-**4. 설정 파일 생성** — 로컬 소스 폴더명(예: `html`)·매니페스트 이름을 물어보면 답합니다. `.vscode/sftp.json`·`deploy/<이름>.deploy.json`이 빈 템플릿으로 생성됩니다(직접 만들지 않음).
+**4. 설정 파일 생성** — 로컬 소스 폴더명(예: `html`)·매니페스트 이름을 물어보면 답합니다. `.vscode/sftp.json`·`deploy/<이름>.deploy.json`이 빈 템플릿으로 생성됩니다(직접 만들지 않음). 소스 폴더명 기본값은 `web`이므로, 루트 폴더를 `web`으로 지었다면 `html`처럼 **다른 이름**으로 답하세요(`web/web/`이 되는 것 방지).
 ```bash
 npm run init
 ```
@@ -116,7 +116,7 @@ git commit -am "test: 연결 확인"        # 훅을 통과하면 연결 완료
 
 끝나면 프로젝트 루트는 이런 모양입니다:
 ```
-my-site/                       ← 프로젝트 루트 (npm run 은 항상 여기서)
+my-site/                       ← 프로젝트 루트 = 1번에서 직접 만든 폴더 (npm run 은 항상 여기서)
 ├─ package.json                ← 2·3번
 ├─ .vscode/sftp.json           ← 4번이 생성, 5번에서 채움 (git 제외)
 ├─ deploy/<이름>.deploy.json   ← 4번이 생성, 6번에서 채움 (git 제외)
