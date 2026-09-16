@@ -19,18 +19,20 @@ npm update sftp-deploy-kit
 
 처음 한 번만 아래 순서대로. 이미 있는 단계는 건너뛰면 됩니다.
 
-**손으로 만드는 건 빈 폴더 1개뿐** — 나머지는 각 단계의 명령이 만듭니다.
+**손으로 만드는 건 빈 폴더 1개, 손으로 채우는 건 설정 파일 2개뿐** — 나머지는 각 단계의 명령이 만듭니다.
 
 | 폴더/파일 | 누가 만드나 | 단계 |
 |---|---|---|
 | `my-site/` (프로젝트 루트) | **직접** — `mkdir` 또는 `git clone` | 1 |
-| `package.json` | `npm init -y` | 2 |
-| `node_modules/` | `npm install` | 2 |
-| `.vscode/sftp.json` · `deploy/<이름>.deploy.json` · `.env` · `backups/` | `npm run init` | 4 |
-| `html/` (소스 폴더 = 실제 작업 폴더) | `npm run pull` — 서버에서 받아오며 자동 생성 | 8 |
-| `.git/hooks/pre-commit` | `npm run hook:install` | 9 |
+| `package.json` · `node_modules/` | `npm init -y` · `npm install` | 2 |
+| `package.json`의 `scripts` 12개 | `npx sftp-kit init` (자동 등록) | 3 |
+| `.vscode/sftp.json` · `deploy/<이름>.deploy.json` · `.env` · `backups/` | `npx sftp-kit init` (빈 템플릿) | 3 |
+| `.gitignore`(설정·백업 제외) · `.gitattributes`(`eol=lf`) | `npx sftp-kit init` (없는 줄만 추가) | 3 |
+| `.vscode/sftp.json` 접속정보 · 매니페스트 내용 | **직접 채움** | 4·5 |
+| `html/` (소스 폴더 = 실제 작업 폴더) | `npm run pull` — 서버에서 받아오며 자동 생성 | 6 |
+| `.git/hooks/pre-commit` | `npm run hook:install` | 7 |
 
-**1. 프로젝트 루트 폴더 준비** — 직접 만든 이 폴더로 `cd`해서 들어간 뒤, 아래 명령은 전부 그 안에서 실행합니다. 이름은 자유(`web`, `my-site` 등). 소스 폴더(`html`)는 직접 만들지 않습니다 — 8번 `pull`이 이 루트 안에 자동 생성합니다.
+**1. 프로젝트 루트 폴더 준비** — 직접 만든 이 폴더로 `cd`해서 들어간 뒤, 아래 명령은 전부 그 안에서 실행합니다. 이름은 자유(`web`, `my-site` 등). 소스 폴더(`html`)는 직접 만들지 않습니다 — 6번 `pull`이 이 루트 안에 자동 생성합니다.
 ```bash
 mkdir my-site && cd my-site && git init
 # 레포가 이미 있으면 대신:  git clone <주소> my-site && cd my-site
@@ -42,32 +44,13 @@ npm init -y                                   # package.json 이 없을 때만
 npm install -D github:yanoo-dev/sftp-deploy-kit
 ```
 
-**3. 스크립트 등록** — `package.json`의 `scripts`에 아래를 붙여 넣습니다. 이후 문서의 `npm run …`이 전부 이걸 씁니다.
-```json
-{
-  "scripts": {
-    "init": "sftp-kit init",
-    "pull": "sftp-kit pull",
-    "upload:changed": "sftp-kit upload:changed",
-    "upload": "sftp-kit upload",
-    "deploy": "sftp-kit deploy",
-    "deploy:check": "sftp-kit deploy:check",
-    "deploy:backup": "sftp-kit deploy:backup",
-    "deploy:rollback": "sftp-kit deploy:rollback",
-    "hook:install": "sftp-kit hook:install",
-    "track": "sftp-kit track",
-    "sftp:auto": "sftp-kit sftp:auto",
-    "remove-git": "sftp-kit remove-git"
-  }
-}
-```
-
-**4. 설정 파일 생성** — 로컬 소스 폴더명(예: `html`)·매니페스트 이름을 물어보면 답합니다. `.vscode/sftp.json`·`deploy/<이름>.deploy.json`이 빈 템플릿으로 생성됩니다(직접 만들지 않음). 소스 폴더명 기본값은 `web`이므로, 루트 폴더를 `web`으로 지었다면 `html`처럼 **다른 이름**으로 답하세요(`web/web/`이 되는 것 방지).
+**3. 초기화** — 이 한 번만 `npx`로 실행합니다(아직 스크립트가 없으므로). 로컬 소스 폴더명·매니페스트 이름을 물어보면 답합니다. 소스 폴더명 기본값은 `web`이므로 루트를 `web`으로 지었다면 `html`처럼 **다른 이름**으로 답하세요(`web/web/` 방지).
 ```bash
-npm run init
+npx sftp-kit init
 ```
+이 명령이 `.vscode/sftp.json`·`deploy/<이름>.deploy.json`(빈 템플릿), `.env`, `backups/`를 만들고, `package.json`에 `npm run` 스크립트 12개를 등록하고, `.gitignore`·`.gitattributes`에 필요한 줄을 넣습니다(있는 건 건드리지 않음). 이후부터는 전부 `npm run …`.
 
-**5. 접속정보 입력** — 4번이 만든 `.vscode/sftp.json`을 열어 채웁니다 (키 설명은 「초기 설정 3」).
+**4. 접속정보 입력** — 3번이 만든 `.vscode/sftp.json`을 열어 채웁니다 (키 설명은 「초기 설정 3」).
 ```json
 {
   "protocol": "ftp",
@@ -82,7 +65,7 @@ npm run init
 }
 ```
 
-**6. 올릴 범위 지정** — 4번이 만든 `deploy/<이름>.deploy.json`에 내가 작업하는 폴더만 적습니다 (「초기 설정 4」).
+**5. 올릴 범위 지정** — 3번이 만든 `deploy/<이름>.deploy.json`에 내가 작업하는 폴더만 적습니다 (「초기 설정 4」).
 ```json
 {
   "remoteRoot": "/html",
@@ -91,24 +74,18 @@ npm run init
 }
 ```
 
-**7. git 제외·줄바꿈**
-```bash
-printf '.vscode/sftp.json\n.env\ndeploy/*.deploy.json\nbackups/\nnode_modules/\n' >> .gitignore
-printf '* text=auto eol=lf\n' >> .gitattributes
-```
-
-**8. 서버 소스 받기** — 이 커밋이 "서버 원본" 기준점입니다.
+**6. 서버 소스 받기** — 이 커밋이 "서버 원본" 기준점입니다.
 ```bash
 npm run pull
 git add -A && git commit -m "backup: 초기 pull"
 ```
 
-**9. 훅 설치** — 업로드 안 된 변경이 커밋되는 것을 막습니다.
+**7. 훅 설치** — 업로드 안 된 변경이 커밋되는 것을 막습니다.
 ```bash
 npm run hook:install
 ```
 
-**10. 연결 확인** — 파일 하나 수정한 뒤:
+**8. 연결 확인** — 파일 하나 수정한 뒤:
 ```bash
 npm run upload:changed                 # 바뀐 파일 목록 확인 후 y → 서버에서 반영 확인
 git commit -am "test: 연결 확인"        # 훅을 통과하면 연결 완료
@@ -117,18 +94,19 @@ git commit -am "test: 연결 확인"        # 훅을 통과하면 연결 완료
 끝나면 프로젝트 루트는 이런 모양입니다:
 ```
 my-site/                       ← 프로젝트 루트 = 1번에서 직접 만든 폴더 (npm run 은 항상 여기서)
-├─ package.json                ← 2·3번
-├─ .vscode/sftp.json           ← 4번이 생성, 5번에서 채움 (git 제외)
-├─ deploy/<이름>.deploy.json   ← 4번이 생성, 6번에서 채움 (git 제외)
-├─ backups/                    ← 업로드 때 자동 (git 제외)
-└─ html/                       ← 8번 pull 이 자동 생성 — 서버 미러 = 실제 작업 폴더 (context 값)
+├─ package.json                ← 2번 생성, 3번이 scripts 등록
+├─ .gitignore · .gitattributes ← 3번이 필요한 줄 추가
+├─ .vscode/sftp.json           ← 3번이 생성, 4번에서 채움 (git 제외)
+├─ deploy/<이름>.deploy.json   ← 3번이 생성, 5번에서 채움 (git 제외)
+├─ backups/                    ← 3번 생성, 업로드 때 자동 사용 (git 제외)
+└─ html/                       ← 6번 pull 이 자동 생성 — 서버 미러 = 실제 작업 폴더 (context 값)
 ```
 
 이후 평소 작업은 **수정 → `npm run upload:changed` → `git commit`** 반복. 서버를 남이 바꿨을 수 있으면 먼저 `npm run pull`. 명령·플래그가 헷갈리면 `npx sftp-kit --help`.
 
 ## 초기 설정
 
-**1. package.json에 스크립트 등록** (권장 — 아래 문서는 전부 `npm run` 기준입니다)
+**1. package.json 스크립트** — `npx sftp-kit init`이 자동 등록합니다. 수동으로 맞추거나 이름을 바꾸고 싶을 때만 아래를 참고하세요(아래 문서는 전부 `npm run` 기준입니다).
 ```json
 {
   "scripts": {
@@ -151,9 +129,9 @@ my-site/                       ← 프로젝트 루트 = 1번에서 직접 만�
 
 **2. 설정 파일 생성**
 ```bash
-npm run init
+npx sftp-kit init        # 처음엔 npx (스크립트 등록 전). 이후 다시 돌릴 땐 npm run init
 ```
-로컬 소스 폴더명·배포 매니페스트 이름을 물어보고 `.vscode/sftp.json`, `deploy/<이름>.deploy.json`, `.env`(폴백용), `backups/`를 만듭니다(이미 있으면 건너뜀).
+로컬 소스 폴더명·배포 매니페스트 이름을 물어보고 `.vscode/sftp.json`, `deploy/<이름>.deploy.json`, `.env`(폴백용), `backups/`를 만들고, `package.json` 스크립트와 `.gitignore`·`.gitattributes` 필수 줄을 등록합니다(이미 있는 것은 전부 건너뜀 — 여러 번 실행해도 안전).
 
 **3. `.vscode/sftp.json` 채우기** — VS Code SFTP 확장과 같은 파일을 공유하며, 키트 전용 키 3개가 더 있습니다:
 
@@ -176,9 +154,9 @@ npm run init
 ```
 `directories`는 재귀 전체, `files`는 파일 하나씩 명시. 다른 담당자 영역(컨트롤러·모델 등)이 섞인 폴더는 통째로 넣지 말고 필요한 파일만 `files`에 적으세요.
 
-**5. `.gitignore`·`.gitattributes`**
-- `.vscode/sftp.json`, `.env`, `deploy/*.deploy.json`, `backups/`는 `.gitignore`에 추가 (접속정보·로컬 설정)
-- `.gitattributes`에 `* text=auto eol=lf`를 권장 — 서버 파일이 CRLF여도 git엔 LF로 담기고, pre-commit 훅·pull 비교가 줄바꿈 차이로 오탐하지 않습니다
+**5. `.gitignore`·`.gitattributes`** — `init`이 넣어줍니다. 직접 관리한다면:
+- `.vscode/sftp.json`, `.env`, `deploy/*.deploy.json`, `backups/`, `node_modules/`는 `.gitignore`에 (접속정보·로컬 설정)
+- `.gitattributes`에 `* text=auto eol=lf` — 서버 파일이 CRLF여도 git엔 LF로 담기고, pre-commit 훅·pull 비교가 줄바꿈 차이로 오탐하지 않습니다
 
 **6. 커밋 전 업로드 보장 훅 설치** (권장)
 ```bash
