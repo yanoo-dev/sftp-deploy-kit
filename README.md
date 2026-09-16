@@ -31,7 +31,25 @@ npm init -y                                   # package.json 이 없을 때만
 npm install -D github:yanoo-dev/sftp-deploy-kit
 ```
 
-**3. 스크립트 등록** — `package.json`의 `scripts`에 「초기 설정 1」 블록을 복사합니다.
+**3. 스크립트 등록** — `package.json`의 `scripts`에 아래를 붙여 넣습니다. 이후 문서의 `npm run …`이 전부 이걸 씁니다.
+```json
+{
+  "scripts": {
+    "init": "sftp-kit init",
+    "pull": "sftp-kit pull",
+    "upload:changed": "sftp-kit upload:changed",
+    "upload": "sftp-kit upload",
+    "deploy": "sftp-kit deploy",
+    "deploy:check": "sftp-kit deploy:check",
+    "deploy:backup": "sftp-kit deploy:backup",
+    "deploy:rollback": "sftp-kit deploy:rollback",
+    "hook:install": "sftp-kit hook:install",
+    "track": "sftp-kit track",
+    "sftp:auto": "sftp-kit sftp:auto",
+    "remove-git": "sftp-kit remove-git"
+  }
+}
+```
 
 **4. 설정 파일 생성** — 로컬 소스 폴더명(예: `html`)·매니페스트 이름을 물어보면 답합니다. `.vscode/sftp.json`·`deploy/<이름>.deploy.json`이 빈 템플릿으로 생성됩니다(직접 만들지 않음).
 ```bash
