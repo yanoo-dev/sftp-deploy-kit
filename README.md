@@ -30,7 +30,7 @@ npm update sftp-deploy-kit
 | `.gitignore`(설정·백업 제외) · `.gitattributes`(`eol=lf`) | `npx sftp-kit init` (없는 줄만 추가) | 3 |
 | `.vscode/sftp.json` 접속정보 · 매니페스트 내용 | **직접 채움** | 4·5 |
 | `html/` (소스 폴더 = 실제 작업 폴더) | `npm run pull` — 서버에서 받아오며 자동 생성 | 6 |
-| `.git/hooks/pre-commit` | `npm run hook:install` | 7 |
+| `.git/hooks/pre-commit` | `npm run hook:install` | 8 |
 
 **1. 프로젝트 루트 폴더 준비** — 직접 만든 이 폴더로 `cd`해서 들어간 뒤, 아래 명령은 전부 그 안에서 실행합니다. 이름은 자유(`web`, `my-site` 등). 소스 폴더(`html`)는 직접 만들지 않습니다 — 6번 `pull`이 이 루트 안에 자동 생성합니다. **VS Code도 이 폴더를 루트로 여세요**(`code my-site`) — 상위 폴더를 열면 SFTP 확장이 `.vscode/sftp.json`을 못 찾아 왼쪽 아이콘이 안 뜹니다.
 ```bash
@@ -121,12 +121,30 @@ git commit -m "track: 작업 폴더 강제 추적"
 ```
 
 
-**7. 훅 설치** — 업로드 안 된 변경이 커밋되는 것을 막습니다.
+**7. git 원격 저장소 연결** — 회사 GitLab/GitHub에 올려둘 거면 여기서. 로컬에서만 쓸 거면 건너뜁니다.
+```bash
+git ls-remote ssh://git@gitlab.example.com:6022/web/my-site.git    # 레포가 있는지·권한이 있는지 확인
+```
+- **비어 있는 레포**(출력 없음) → 우리 기준 커밋을 올립니다
+  ```bash
+  git remote add origin ssh://git@gitlab.example.com:6022/web/my-site.git
+  git push -u origin develop
+  ```
+- **이미 커밋이 있는 레포**(`refs/heads/…` 줄이 나옴) → 바로 push 하지 말고 먼저 받아서 상태를 봅니다
+  ```bash
+  git remote add origin ssh://git@gitlab.example.com:6022/web/my-site.git
+  git fetch origin
+  git log --oneline origin/main -5       # 개발자 커밋이 있으면 그 위에 develop 브랜치로 이어감
+  ```
+- `main`이 protected(push 거부)면 `develop` 같은 작업 브랜치로 push 합니다. 브랜치 이름은 `git branch --show-current`로 확인
+- 레포가 없다고 나오면(`Repository not found` / `Permission denied`) GitLab에서 레포를 만들거나 권한을 받은 뒤 다시
+
+**8. 훅 설치** — 업로드 안 된 변경이 커밋되는 것을 막습니다.
 ```bash
 npm run hook:install
 ```
 
-**8. 연결 확인** — 파일 하나 수정한 뒤:
+**9. 연결 확인** — 파일 하나 수정한 뒤:
 ```bash
 npm run upload:changed                 # 바뀐 파일 목록 확인 후 y → 서버에서 반영 확인
 git commit -am "test: 연결 확인"        # 훅을 통과하면 연결 완료
