@@ -92,13 +92,20 @@ code .vscode/sftp.json        # VS Code 로 열기 (또는 탐색기에서 .vsco
 }
 ```
 
-**5. 올릴 범위 지정** — 3번이 만든 `deploy/<이름>.deploy.json`을 열어, `remoteRoot`(서버 기준 폴더)와 내가 작업하는 폴더만 적습니다. 어떤 폴더가 있는지 모르면 6번 `pull`을 먼저 하고 받아온 구조를 보고 채워도 됩니다 (「초기 설정 4」).
+**5. 올릴 범위 지정** — 3번이 만든 `deploy/<이름>.deploy.json`을 열어, `remoteRoot`(서버 기준 폴더 — 4번 `remotePath`와 같은 값)와 내가 작업하는 폴더만 적습니다. 어떤 폴더가 있는지 모르면 6번 `pull`을 먼저 하고 받아온 구조를 보고 채워도 됩니다 (「초기 설정 4」).
 ```json
 {
-  "remoteRoot": "/html",
+  "remoteRoot": "/home/my-account/html",
   "files": [],
-  "directories": ["assets/css", "assets/js", "pages/my-site"]
+  "directories": ["pages/my-site", "assets", "intro"]
 }
+```
+- `directories`는 **폴더 이름만** — 하위 폴더까지 자동으로 포함되고, `assets/*` 같은 와일드카드는 쓸 수 없습니다. 큰 폴더(`assets`)를 통째로 넣어도 `upload:changed`는 바뀐 파일만 올립니다
+- `files`는 폴더째 넣기 곤란할 때 파일 하나씩 (예: `"_modules/site/views/layer_popup.html"`)
+- 다른 담당자 영역(컨트롤러·모델·`__uok__`·`__system__`)은 넣지 않습니다
+- 적은 뒤 확인:
+```bash
+npm run deploy:check -- --page=<이름>      # "manifest directory 없음" 줄이 안 나오면 OK
 ```
 
 **6. 서버 소스 받기** — 이 커밋이 "서버 원본" 기준점입니다.
