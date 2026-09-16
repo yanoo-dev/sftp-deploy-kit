@@ -19,6 +19,17 @@ npm update sftp-deploy-kit
 
 처음 한 번만 아래 순서대로. 이미 있는 단계는 건너뛰면 됩니다.
 
+**손으로 만드는 건 빈 폴더 1개뿐** — 나머지는 각 단계의 명령이 만듭니다.
+
+| 폴더/파일 | 누가 만드나 | 단계 |
+|---|---|---|
+| `my-site/` (프로젝트 루트) | **직접** — `mkdir` 또는 `git clone` | 1 |
+| `package.json` | `npm init -y` | 2 |
+| `node_modules/` | `npm install` | 2 |
+| `.vscode/sftp.json` · `deploy/<이름>.deploy.json` · `.env` · `backups/` | `npm run init` | 4 |
+| `html/` (소스 폴더 = 실제 작업 폴더) | `npm run pull` — 서버에서 받아오며 자동 생성 | 8 |
+| `.git/hooks/pre-commit` | `npm run hook:install` | 9 |
+
 **1. 프로젝트 루트 폴더 준비** — 아래 명령은 전부 이 폴더에서 실행합니다. 소스 폴더(`web`/`html`)는 직접 만들지 않습니다(8번 `pull`이 자동 생성).
 ```bash
 mkdir my-site && cd my-site && git init
