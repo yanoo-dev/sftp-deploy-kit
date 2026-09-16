@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "description": "SFTP pull/upload 자동화 — 변경 파일 자동 감지, 드리프트 체크, 백업/롤백 내장 상태관리 키트 (php-local-kit에서 SFTP 파이프라인만 분리)",
+  "description": "SFTP pull/upload 자동화 — 변경 파일 자동 감지, 드리프트 체크, 백업/롤백 내장 상태관리 키트",
   "bin": {
     "sftp-kit": "./bin/cli.js"
   },
