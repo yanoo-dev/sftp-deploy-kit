@@ -119,6 +119,12 @@ git ls-files html/assets | wc -l                                   # 0 이면 �
 git add -f html/assets/css html/assets/js html/pages/my-site      # 매니페스트에 넣은 폴더만
 git commit -m "track: 작업 폴더 강제 추적"
 ```
+반대로 **올리면 안 되는 것도 첫 커밋 전에 빼세요** — 프레임워크 설정 폴더(예: `__uok__/config/database.php`)엔 DB 비밀번호가 평문으로 들어 있습니다. 첫 커밋을 만들기 전에:
+```bash
+grep -rl "password" html/__uok__/config html/application/config 2>/dev/null   # 비번이 든 파일 찾기
+echo "html/__uok__/" >> .gitignore                                            # 그 폴더를 통째로 제외 (로컬엔 남음)
+```
+이미 커밋·push한 뒤 발견했다면 `git rm -r --cached <폴더>` → `.gitignore` 추가 → `git commit --amend --no-edit` → `git push --force` (첫 커밋 하나뿐일 때만 이렇게 — 히스토리에서 지워집니다).
 
 
 **7. git 원격 저장소 연결** — 회사 GitLab/GitHub에 올려둘 거면 여기서. 로컬에서만 쓸 거면 건너뜁니다.
