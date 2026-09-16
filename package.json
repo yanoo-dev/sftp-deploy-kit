@@ -12,6 +12,7 @@
     "bin",
     "scripts",
     "hooks",
+    "docker",
     "deploy/example.deploy.json",
     "deploy/no-upload.txt.example",
     ".vscode/sftp.json.example",
@@ -31,7 +32,8 @@
     "dev:deploy:rollback": "node scripts/deploy-rollback.js",
     "dev:upload": "node scripts/upload.js",
     "dev:upload:changed": "node scripts/upload-changed.js",
-    "dev:hook:install": "node scripts/hook-install.js"
+    "dev:hook:install": "node scripts/hook-install.js",
+    "dev:docker:init": "node scripts/docker-init.js"
   },
   "dependencies": {
     "basic-ftp": "^5.0.5",

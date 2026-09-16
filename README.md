@@ -278,6 +278,7 @@ npm run upload:changed
 | `npm run deploy -- --page=<이름> [--only=path1,path2]` | manifest 기준 실제 업로드 (y/n 확인 필수) |
 | `npm run deploy:rollback -- --page=<이름> [--backup=<id>]` | 백업 스냅샷으로 서버 복원 |
 | `npm run hook:install [-- --force]` | pre-commit 훅 설치(업로드 안 된 변경 커밋 차단) |
+| `npx sftp-kit docker:init --db-host=<주소> [--name= --port= --php=]` | 로컬 PHP 실행용 Docker 파일 4개 + `db:*` 스크립트 생성 |
 | `npm run sftp:auto off` / `on` / `status` | VS Code `downloadOnOpen` 토글 |
 | `npm run remove-git` | 서버측 `.git` 잔여물 수동 제거 (pull에 이미 자동 포함됨) |
 | `npx sftp-kit --help` / `npx sftp-kit <명령> --help` | 사용법만 출력하고 **실행하지 않음** |
@@ -291,6 +292,31 @@ npm run upload:changed
 **업로드 경로와 pull 경로가 다르면 경고합니다** — `.vscode/sftp.json`의 `remotePath`/`pullRemoteRoot`(또는 manifest의 `remoteRoot`)가 서로 다른 값이면 `deploy`/`deploy:check`/`deploy:backup` 실행 시 경고를 띄웁니다. 정상적으로 둘 다 같은 서버 폴더를 가리켜야 하며, 다르면 "pull로 받은 위치"와 "실제 배포되는 위치"가 어긋나는 설정 실수일 가능성이 높습니다.
 
 **`track`은 manifest에 선언된 디렉토리를 통째로 열고, `deploy/no-upload.txt`에 매칭되는 파일만 다시 닫습니다** — `.gitignore` 크기가 파일 수가 아니라 manifest 디렉토리 개수에 비례하고, 새 파일이 생겨도 `track`을 다시 돌릴 필요가 없습니다. 특정 파일만 git 추적에서 계속 빼고 싶다면(예: 다른 담당자가 서버에서 직접 작업하는 파일) `deploy/no-upload.txt`에 패턴을 등록하세요(파일명 또는 `*` 와일드카드, 한 줄에 하나) — `deploy`/`upload:changed`의 업로드 대상에서도 같이 제외됩니다. manifest `files`에만 적힌 파일은 그 파일 한 줄만 예외로 열립니다.
+
+## 로컬에서 PHP 사이트 띄우기 (Docker)
+
+서버와 같은 PHP 버전을 내 컴퓨터에서 돌려 `http://localhost:<포트>/`로 확인하고 싶을 때. Docker Desktop이 설치돼 있어야 합니다.
+
+```bash
+npx sftp-kit docker:init --name=my-site --port=8080 --db-host=<원격DB주소>
+docker compose up -d --build        # 첫 빌드 3~10분
+npm run db:status                   # "DB 연결 ✅" 나오면 http://localhost:8080/
+```
+
+`docker:init`이 만드는 것(전부 `.gitignore`에 자동 추가):
+
+| 파일 | 역할 |
+|---|---|
+| `Dockerfile` | `php:<버전>-apache` + 소스가 쓰는 확장(mysqli·gd·mbstring·zip·mcrypt) + socat. PHP 7.x면 Debian 옛 저장소 우회 포함 |
+| `docker-compose.yaml` | 컨테이너 이름 `<name>-web-1`, 포트, DB 프록시 주소 |
+| `docker-entrypoint-local.sh` | 소스가 `hostname=localhost`로 DB에 붙는 구조(CI3 계열)를 위해, 컨테이너 안 유닉스 소켓을 원격 DB로 중계(socat, 죽으면 자동 재기동) |
+| `scripts/db-proxy.sh` | `npm run db:office / db:home / db:status / db:fix` — 프록시 타겟 전환·상태 확인 |
+
+- 옵션: `--db-port=3306` `--php=7.2` `--force`(기존 파일 덮어쓰기). `--name`은 생략 시 현재 폴더명 — 두 프로젝트 폴더명이 같으면(`web`/`web`) 반드시 다르게 주세요
+- 같은 개발사 CMS 프로젝트끼리는 **DB 주소·포트·이름 3개만** 다르고 나머지는 동일합니다. 다른 스택이면 생성된 `Dockerfile`의 확장 목록, 소스가 DB에 IP로 붙는 구조면 socat 부분을 빼면 됩니다
+- 재택 등 DB에 직접 못 붙는 환경은 `npm run db:home`(Mac의 `localhost:13306` SSH 터널 경유), 직결되면 `npm run db:office`
+- 실서버 DB에 직결되는 구조이므로 **읽기만** — 로컬에서 INSERT/UPDATE/DELETE 하지 마세요
+- 빌드가 Docker Hub 타임아웃으로 실패하면 같은 Dockerfile로 만든 다른 프로젝트 이미지를 `docker tag <기존이미지> <name>-web:latest`로 이름만 붙여 `docker compose up -d`(빌드 생략) 할 수 있습니다
 
 ## 캐시버스팅 — 동작과 한계
 
