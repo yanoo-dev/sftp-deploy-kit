@@ -237,6 +237,38 @@ npm run upload:changed
 ## SFTP / FTP
 `.vscode/sftp.json`(또는 `.env`)에 `"protocol": "sftp"` 또는 `"ftp"`를 넣어 접속 방식을 고를 수 있습니다(생략 시 `sftp`). 순수 FTP만 지원하는 서버라면 `"ftp"`로 설정하세요 — 포트 기본값도 각각 22 / 21로 자동 적용됩니다. FTP는 파일을 임시명 없이 직접 덮어쓰므로, 전송 중에 그 페이지를 열면 잘린 파일이 잠깐 보일 수 있습니다(새로고침하면 정상).
 
+**SFTP — 비밀번호**
+```json
+{
+  "protocol": "sftp",
+  "host": "서버주소",
+  "port": 22,
+  "username": "계정",
+  "password": "비밀번호",
+  "remotePath": "/var/www/html",
+  "context": "html",
+  "pullRemoteRoot": "/var/www/html",
+  "pullExclude": "logs,tmp"
+}
+```
+
+**SFTP — SSH 키** (`password` 대신 키 파일 경로, 키에 암호가 있으면 `passphrase`)
+```json
+{
+  "protocol": "sftp",
+  "host": "서버주소",
+  "port": 22,
+  "username": "계정",
+  "privateKeyPath": "/Users/me/.ssh/id_ed25519",
+  "passphrase": "키 암호 (없으면 이 줄 삭제)",
+  "remotePath": "/var/www/html",
+  "context": "html",
+  "pullRemoteRoot": "/var/www/html",
+  "pullExclude": "logs,tmp"
+}
+```
+`pull`/`upload:changed`/`deploy` 등 모든 명령은 프로토콜과 무관하게 동일합니다. VS Code SFTP 확장도 같은 파일을 읽으므로 확장 쪽 접속도 함께 바뀝니다.
+
 ## (선택) AI 코딩 툴 세션 충돌 방지
 
 Claude Code처럼 터미널에서 직접 파일을 수정하는 AI 툴을 쓴다면, `.claude/settings.json`을 프로젝트에 추가하세요(이 파일은 `.gitignore`에 넣는 걸 권장):
