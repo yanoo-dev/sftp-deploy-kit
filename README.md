@@ -183,10 +183,6 @@ Claude Code처럼 터미널에서 직접 파일을 수정하는 AI 툴을 쓴다
 ```
 다른 AI 코딩 툴을 쓴다면 그 툴의 훅 방식으로 같은 타이밍에 `npx sftp-kit sftp:auto off`/`on`을 호출하면 됩니다.
 
-## 관련
-
-- 원본: [`php-local-kit`](https://github.com/yanoo-dev/php-local-kit)
-
 ## License
 
 [MIT](./LICENSE)
