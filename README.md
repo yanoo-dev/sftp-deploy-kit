@@ -48,6 +48,10 @@ npm install -D github:yanoo-dev/sftp-deploy-kit
 ```bash
 npx sftp-kit init
 ```
+질문에 답하기 번거로우면 플래그로 한 번에(질문 없이 바로 생성):
+```bash
+npx sftp-kit init --context=html --manifest=mysite
+```
 정상이면 터미널에 이렇게 찍힙니다(이름은 답한 값):
 ```
 [init] 생성: .vscode/sftp.json (context: "html")
@@ -68,7 +72,7 @@ Finder에서는 `⌘ ⇧ .` 로 숨김 파일을 켜야 `.vscode`가 보이고, 
 > 안 될 때
 > - `Missing script: "init"` → `npm run init`으로 실행한 것. 첫 1회는 `npx sftp-kit init`
 > - `[init] 이미 있음, 건너뜀: .vscode/sftp.json` → 이미 파일이 있는 것(clone한 레포에 들어있던 경우). 그 파일을 4번에서 그대로 채우면 됨
-> - 아무 것도 안 생김 → `pwd`로 지금 위치가 `package.json` 있는 프로젝트 루트인지 확인. init은 **현재 폴더**에 만듭니다
+> - 아무 것도 안 생김 → `pwd`로 지금 위치가 `package.json` 있는 프로젝트 루트인지 확인. init은 **현재 폴더**에 만듭니다. 질문이 안 뜨는 환경(키 입력이 안 넘어가는 터미널)이면 위 플래그 방식으로
 
 **4. 접속정보 입력** — 3번이 만든 `.vscode/sftp.json`(숨김 폴더 안)을 열어 아래처럼 채웁니다. `host`·`username`·`password`·`remotePath`는 서버 담당자에게 받은 값, `context`는 3번에서 답한 소스 폴더명 (키 설명은 「초기 설정 3」).
 ```bash

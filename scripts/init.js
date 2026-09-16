@@ -8,6 +8,37 @@ import { fileURLToPath } from 'node:url';
 const PROJECT_ROOT = process.cwd();
 const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+/**
+ * --key=value 플래그를 읽는다 (없으면 null)
+ */
+function flag(name) {
+  const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3).trim() : null;
+}
+
+/**
+ * 질문 하나를 던지고 답을 받는다 — 플래그가 있으면 안 묻고, 터미널이 아니거나
+ * 입력이 닫히면(파이프·에이전트 실행 등) 기본값을 쓴다
+ *
+ * 예전엔 stdin 이 닫힌 채 실행되면 rl.question 이 영원히 안 풀려서 아무 파일도
+ * 안 만들고 조용히 끝났다. 이제 어떤 환경에서도 반드시 생성까지 간다.
+ */
+async function ask(rl, label, fallback, flagName) {
+  const fromFlag = flag(flagName);
+  if (fromFlag) {
+    return fromFlag;
+  }
+  if (!process.stdin.isTTY) {
+    console.log(`[init] ${label}: 입력 없음 → 기본값 "${fallback}" 사용 (바꾸려면 --${flagName}=값)`);
+    return fallback;
+  }
+  const answer = await Promise.race([
+    rl.question(`${label} (기본값: ${fallback}): `),
+    new Promise((resolve) => rl.once('close', () => resolve(''))),
+  ]);
+  return answer.trim() || fallback;
+}
+
 const SCRIPTS = {
   init: 'sftp-kit init',
   pull: 'sftp-kit pull',
@@ -100,8 +131,7 @@ async function main() {
   if (existsSync(sftpTarget)) {
     console.log('[init] 이미 있음, 건너뜀: .vscode/sftp.json');
   } else {
-    const answer = (await rl.question('로컬 소스 폴더명 (기본값: web): ')).trim();
-    folderName = answer || 'web';
+    folderName = await ask(rl, '로컬 소스 폴더명', 'web', 'context');
 
     const example = JSON.parse(
       readFileSync(join(PACKAGE_ROOT, '.vscode', 'sftp.json.example'), 'utf8'),
@@ -113,8 +143,7 @@ async function main() {
     console.log(`[init] 생성: .vscode/sftp.json (context: "${folderName}")`);
   }
 
-  const manifestAnswer = (await rl.question('배포 매니페스트 이름 (기본값: main): ')).trim();
-  const manifestName = manifestAnswer || 'main';
+  const manifestName = await ask(rl, '배포 매니페스트 이름', 'main', 'manifest');
   const deployDir = join(PROJECT_ROOT, 'deploy');
   const manifestTarget = join(deployDir, `${manifestName}.deploy.json`);
 
