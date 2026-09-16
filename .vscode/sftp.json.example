@@ -1,15 +1,19 @@
 {
-    "name": "My Server",
-    "protocol": "sftp",
+    "name": "my-site",
     "host": "",
+    "protocol": "sftp",
     "port": 22,
     "username": "",
     "password": "",
     "remotePath": "/path/on/server",
-    "context": "web",
+    "context": "html",
     "pullRemoteRoot": "/path/on/server",
-    "pullExclude": "logs,tmp",
-    "skipGitTrack": false,
+    "pullExclude": "logs,tmp,sessions,datas,data_files,__uok__,__system__",
+    "skipGitTrack": true,
     "uploadOnSave": false,
-    "downloadOnOpen": false
+    "downloadOnOpen": false,
+    "useTempFile": false,
+    "openSsh": false,
+    "autoDownload": false,
+    "ignore": [".vscode", ".idea", "*.mp4", "*.git", ".gitignore"]
 }

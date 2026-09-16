@@ -1,8 +1,9 @@
 {
-  "remoteRoot": "/path/on/server/subfolder",
-  "files": [
-    "example.css",
-    "example.js"
-  ],
-  "directories": []
+  "remoteRoot": "/path/on/server",
+  "files": [],
+  "directories": [
+    "assets/css",
+    "assets/js",
+    "pages/my-site"
+  ]
 }

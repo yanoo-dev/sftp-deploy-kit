@@ -1,0 +1,2 @@
+# 다른 담당자가 서버에서 직접 작업하는 파일 — track/deploy/upload:changed 모두에서 자동 제외
+# 파일명 또는 * 와일드카드, 한 줄에 하나. 예: mypage.*

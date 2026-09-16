@@ -126,12 +126,12 @@ async function main() {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
 
   const sftpTarget = join(PROJECT_ROOT, '.vscode', 'sftp.json');
-  let folderName = 'web';
+  let folderName = 'html';
 
   if (existsSync(sftpTarget)) {
     console.log('[init] 이미 있음, 건너뜀: .vscode/sftp.json');
   } else {
-    folderName = await ask(rl, '로컬 소스 폴더명', 'web', 'context');
+    folderName = await ask(rl, '로컬 소스 폴더명', 'html', 'context');
 
     const example = JSON.parse(
       readFileSync(join(PACKAGE_ROOT, '.vscode', 'sftp.json.example'), 'utf8'),
@@ -154,6 +154,16 @@ async function main() {
     mkdirSync(deployDir, { recursive: true });
     writeFileSync(manifestTarget, exampleManifest, 'utf8');
     console.log(`[init] 생성: deploy/${manifestName}.deploy.json`);
+  }
+
+  // deploy/no-upload.txt — 남이 서버에서 직접 작업하는 파일을 업로드·추적에서 빼는 목록 (빈 템플릿)
+  const noUploadTarget = join(deployDir, 'no-upload.txt');
+  if (existsSync(noUploadTarget)) {
+    console.log('[init] 이미 있음, 건너뜀: deploy/no-upload.txt');
+  } else {
+    mkdirSync(deployDir, { recursive: true });
+    writeFileSync(noUploadTarget, readFileSync(join(PACKAGE_ROOT, 'deploy', 'no-upload.txt.example'), 'utf8'), 'utf8');
+    console.log('[init] 생성: deploy/no-upload.txt');
   }
 
   // .env — .vscode/sftp.json이 있으면 항상 우선이라 실제로는 안 쓰이지만,

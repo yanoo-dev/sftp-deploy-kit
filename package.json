@@ -13,6 +13,7 @@
     "scripts",
     "hooks",
     "deploy/example.deploy.json",
+    "deploy/no-upload.txt.example",
     ".vscode/sftp.json.example",
     ".env.example",
     "README.md",
