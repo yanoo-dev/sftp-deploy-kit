@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
-import { loadConfig } from './lib/config.js';
+import { loadConfig, isRootLocal } from './lib/config.js';
 
 /**
  * pull로 같이 딸려온 운영 서버측 .git(개발서버에 원래 있던 빈 저장소)을 로컬에서 제거
@@ -8,9 +8,16 @@ import { loadConfig } from './lib/config.js';
  * localRoot 안에 .git이 있으면 git이 그 폴더를 서브모듈처럼 취급해
  * git add 가 "does not have a commit checked out" 로 막힌다.
  * npx sftp-kit pull 실행 시 bin/cli.js가 자동으로 이어서 실행한다.
+ * 루트 모드(context '.')에선 localRoot/.git 이 프로젝트 자신의 저장소라 절대 지우지 않는다.
  */
 function main() {
   const cfg = loadConfig();
+
+  if (isRootLocal(cfg.localRoot)) {
+    console.log('[remove-git] 루트 모드(context ".") — 프로젝트 자신의 .git 이라 건너뜀');
+    return;
+  }
+
   const target = join(cfg.localRoot, '.git');
 
   if (!existsSync(target)) {

@@ -3,7 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from './lib/config.js';
+import { loadConfig, isRootLocal } from './lib/config.js';
 import { loadDeployManifest } from './lib/manifest.js';
 import { bumpCacheBusting } from './lib/cache-bust.js';
 
@@ -132,8 +132,19 @@ function getWorkingTreeChangedFiles() {
   return files;
 }
 
+/**
+ * git status 경로(저장소 기준)를 매니페스트 기준 상대경로로 변환
+ *
+ * 하위 폴더 모드: 'html/pages/a.css' → 'pages/a.css' (localRoot 접두어 제거, 밖이면 null)
+ * 루트 모드(context '.'): 저장소 경로 = 매니페스트 경로라 그대로 반환.
+ */
 function toManifestRelative(repoRelPath, localRoot) {
   const normalized = repoRelPath.replace(/\\/g, '/');
+
+  if (isRootLocal(localRoot)) {
+    return normalized;
+  }
+
   const prefix = `${localRoot}/`;
 
   if (!normalized.startsWith(prefix)) {

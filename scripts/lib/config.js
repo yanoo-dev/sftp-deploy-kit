@@ -18,6 +18,17 @@ export function normalizeRoot(raw) {
 }
 
 /**
+ * localRoot 가 프로젝트 루트 자체인지 판별
+ *
+ * context 가 '.' / './' 이면 true — 깃 저장소 루트 = 웹 루트인 구조(회사 GitLab 등).
+ * 이 모드에선 .git · .gitignore 가 회사 저장소 소유라 remove-git · git-track 이 건드리면 안 된다.
+ */
+export function isRootLocal(localRoot) {
+  const s = String(localRoot ?? '').trim();
+  return s === '.' || s === './';
+}
+
+/**
  * 접속/경로 설정을 단일 소스로 로드
  *
  * 우선순위: .vscode/sftp.json → .env (폴백). VS Code SFTP 설정 하나로 통일해

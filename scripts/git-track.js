@@ -29,6 +29,13 @@ const ROOT = process.cwd();
 const cfg = loadConfig();
 const localRoot = (cfg.localRoot || 'workspaces/html').replace(/\/+$/, '');
 
+// skipGitTrack(sftp.json) 이면 .gitignore 를 건드리지 않는다 — 회사 저장소처럼
+// .gitignore 소유자가 따로 있는 프로젝트용. upload / upload:changed / 단독 track 모두 여기서 걸러진다.
+if (cfg.skipGitTrack) {
+  console.log('[git-track] skipGitTrack — .gitignore 갱신 건너뜀');
+  process.exit(0);
+}
+
 const MARK_START = '# >>> auto-track (manifest 기반 · git-track.js 자동생성 · 수정 금지) >>>';
 const MARK_END = '# <<< auto-track <<<';
 
