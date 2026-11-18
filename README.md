@@ -204,10 +204,10 @@ npx sftp-kit init        # 처음엔 npx (스크립트 등록 전). 이후 다�
 |---|---|
 | `host` / `port` / `username` / `password` / `protocol` | 접속 정보. `protocol`은 `sftp`(기본, 22) 또는 `ftp`(21) |
 | `remotePath` | 업로드 기준 서버 폴더 (매니페스트 `remoteRoot`가 있으면 그게 우선) |
-| `context` | 로컬 소스 폴더명 (예: `web`, `html`) — pull 받는 곳이자 매니페스트 경로의 기준 |
+| `context` | 로컬 소스 폴더명 (예: `web`, `html`) — pull 받는 곳이자 매니페스트 경로의 기준. 저장소 루트가 곧 웹 루트면 `.` (아래 「루트 모드」) |
 | `pullRemoteRoot` | pull로 받아올 서버 폴더. `remotePath`와 다르면 `deploy` 계열이 경고를 띄웁니다 |
 | `pullExclude` | pull에서 뺄 폴더/파일 이름(콤마 구분). `logs,tmp,sessions,uploads`처럼 — **`--exclude` 플래그 대신 여기에 적는 것이 정본** |
-| `skipGitTrack` | `true`면 `upload:changed`가 `.gitignore` 자동 편집(`track`)을 건너뜀 |
+| `skipGitTrack` | `true`면 `.gitignore` 자동 편집(`track`)을 건너뜀 — `upload` · `upload:changed` · 단독 `npm run track` 모두 해당 |
 
 **4. `deploy/<이름>.deploy.json` 채우기**
 ```json
@@ -228,13 +228,55 @@ npx sftp-kit init        # 처음엔 npx (스크립트 등록 전). 이후 다�
 npm run hook:install
 ```
 
+## 루트 모드 — 저장소 루트 = 웹 루트 (회사 GitLab 등)
+
+회사 저장소를 clone 해서 그 폴더 그대로 서버와 맞춰 쓰는 경우. 저장소 경로에 `remotePath`만 붙이면 서버 경로가 되도록 `context`를 `.`으로 둡니다.
+
+```
+ygmirae/pages/ygmirae/css/layout.css  ↔  /data/www/html/pages/ygmirae/css/layout.css
+└─ 저장소 루트 (context ".")              └─ remotePath
+```
+
+`.vscode/sftp.json`
+```jsonc
+{
+  "remotePath": "/data/www/html",
+  "context": ".",          // 저장소 루트 = 로컬 소스 루트
+  "skipGitTrack": true     // 회사 .gitignore 는 건드리지 않음
+}
+```
+
+루트 모드에서 키트가 하는 것 / 안 하는 것:
+- `pull` 후 `remove-git` — 프로젝트 자신의 `.git`이라 **건너뜀**
+- `upload:changed` — `git status` 경로를 그대로 매니페스트와 매칭 (접두어 제거 없음)
+- `track` — `skipGitTrack: true`라 `.gitignore`를 **건드리지 않음**
+
+**키트 파일은 회사 저장소에 커밋하지 않습니다.** `.gitignore` 대신 내 컴퓨터에만 적용되는 `.git/info/exclude`에 등록하세요.
+```bash
+cat >> .git/info/exclude <<'EOF'
+package.json
+package-lock.json
+node_modules/
+deploy/
+backups/
+.env
+.env.*
+.gitattributes
+EOF
+```
+
+주의:
+- `npx sftp-kit init`은 `.gitignore`·`.gitattributes`에 줄을 추가합니다. 루트 모드에선 init 후 `git diff .gitignore .gitattributes`로 확인하고 되돌리거나(`git checkout -- .gitignore .gitattributes`), 설정 파일을 직접 만드세요.
+- `npm run pull`은 서버 전체를 저장소 루트에 덮어씁니다. 실행 전 커밋해두고, 받은 뒤 `git status`로 서버와 저장소 차이를 확인하세요.
+- 서버에 바로 올리는 구조라 **올리기 전 브랜치를 꼭 확인**하세요(MR 전 브랜치 파일이 운영에 나갈 수 있음).
+
 ## 사용법
 
 **처음 받을 때 — 전체 구조 통째로**
 ```bash
 npm run pull
 ```
-`.vscode/sftp.json`의 `pullRemoteRoot`(없으면 `remotePath`) 전체를 로컬 `context` 폴더로 재귀 미러링합니다. 두 번째부터는 크기·수정시각이 같은 파일은 건너뜁니다. 서버측 `.git` 잔여물은 자동 제거됩니다.
+`.vscode/sftp.json`의 `pullRemoteRoot`(없으면 `remotePath`) 전체를 로컬 `context` 폴더로 재귀 미러링합니다. 두 번째부터는 크기·수정시각이 같은 파일은 건너뜁니다. 서버측 `.git` 잔여물은 자동 제거됩니다(루트 모드에선 프로젝트 자신의 `.git`이라 건너뜀).
 
 `--exclude`를 직접 붙이면 설정의 `pullExclude`를 **덮어씁니다**(경고 출력). 제외 목록은 설정 파일에 두고, 플래그는 일회성 예외에만 쓰세요.
 
