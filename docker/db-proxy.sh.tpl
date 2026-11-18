@@ -2,10 +2,10 @@
 #
 # db-proxy.sh — 로컬 Docker 컨테이너의 mysqli 소켓 프록시(socat) 타겟 전환/점검
 #
-#   ./scripts/db-proxy.sh office     원격 DB 직결   (__DB_HOST__:__DB_PORT__)
-#   ./scripts/db-proxy.sh home       재택 DB 터널 경유 (host.docker.internal:13306)
-#   ./scripts/db-proxy.sh status     현재 타겟 + socat + DB 연결 확인 (인자 생략 시 기본)
-#   ./scripts/db-proxy.sh restart    현재 타겟 그대로 socat 재기동
+#   ./_docker/db-proxy.sh office     원격 DB 직결   (__DB_HOST__:__DB_PORT__)
+#   ./_docker/db-proxy.sh home       재택 DB 터널 경유 (host.docker.internal:13306)
+#   ./_docker/db-proxy.sh status     현재 타겟 + socat + DB 연결 확인 (인자 생략 시 기본)
+#   ./_docker/db-proxy.sh restart    현재 타겟 그대로 socat 재기동
 #
 # 원리: docker-entrypoint-local.sh 의 감시 루프가 컨테이너 안 /tmp/db-proxy.target 을
 #       읽어 socat 을 (재)기동한다. 이 스크립트는 "타겟 파일 교체 + socat kill" 만 하고

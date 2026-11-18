@@ -320,7 +320,8 @@ npm run upload:changed
 | `npm run deploy -- --page=<이름> [--only=path1,path2]` | manifest 기준 실제 업로드 (y/n 확인 필수) |
 | `npm run deploy:rollback -- --page=<이름> [--backup=<id>]` | 백업 스냅샷으로 서버 복원 |
 | `npm run hook:install [-- --force]` | pre-commit 훅 설치(업로드 안 된 변경 커밋 차단) |
-| `npx sftp-kit docker:init --db-host=<주소> [--name= --port= --php=]` | 로컬 PHP 실행용 Docker 파일 4개 + `db:*` 스크립트 생성 |
+| `npx sftp-kit docker:init --db-host=<주소> 또는 --db-tunnel [--name= --port= --php= --watch=]` | 로컬 PHP Docker 세팅 생성 (루트 compose + `_docker/`, scripts · browser-sync 등록) |
+| `npm run db:tunnel` | 맥 → 서버 안 DB SSH 터널 (`--db-tunnel` 구성) |
 | `npm run sftp:auto off` / `on` / `status` | VS Code `downloadOnOpen` 토글 |
 | `npm run remove-git` | 서버측 `.git` 잔여물 수동 제거 (pull에 이미 자동 포함됨) |
 | `npx sftp-kit --help` / `npx sftp-kit <명령> --help` | 사용법만 출력하고 **실행하지 않음** |
@@ -340,25 +341,41 @@ npm run upload:changed
 서버와 같은 PHP 버전을 내 컴퓨터에서 돌려 `http://localhost:<포트>/`로 확인하고 싶을 때. Docker Desktop이 설치돼 있어야 합니다.
 
 ```bash
-npx sftp-kit docker:init --name=my-site --port=8080 --db-host=<원격DB주소>
+# DB 에 직접 붙을 수 있을 때 (공인 IP DB)
+npx sftp-kit docker:init --name=my-site --port=8080 --php=7.2 --db-host=<원격DB주소>
+
+# DB 계정이 서버 안 localhost 전용일 때 (SSH 로 서버에 들어가야만 붙음)
+npx sftp-kit docker:init --name=my-site --port=8082 --php=7.4 --db-tunnel
+npm run db:tunnel                   # 다른 터미널에 켜둠 (sftp.json SSH 계정으로 맥 13306 → 서버 3306)
+
 docker compose up -d --build        # 첫 빌드 3~10분
-npm run db:status                   # "DB 연결 ✅" 나오면 http://localhost:8080/
+npm run db:status                   # "DB 연결 ✅" 나오면 http://localhost:<포트>/
+npm run dev                         # browser-sync — 저장하면 자동 새로고침 (포트 8082 → 3002 처럼 자동 매칭)
 ```
 
-`docker:init`이 만드는 것(전부 `.gitignore`에 자동 추가):
+`docker:init`이 만드는 것 — compose 만 루트(`docker compose up` 그대로 동작), 나머지는 `_docker/`:
 
 | 파일 | 역할 |
 |---|---|
-| `Dockerfile` | `php:<버전>-apache` + 소스가 쓰는 확장(mysqli·gd·mbstring·zip·mcrypt) + socat. PHP 7.x면 Debian 옛 저장소 우회 포함 |
-| `docker-compose.yaml` | 컨테이너 이름 `<name>-web-1`, 포트, DB 프록시 주소 |
-| `docker-entrypoint-local.sh` | 소스가 `hostname=localhost`로 DB에 붙는 구조(CI3 계열)를 위해, 컨테이너 안 유닉스 소켓을 원격 DB로 중계(socat, 죽으면 자동 재기동) |
-| `scripts/db-proxy.sh` | `npm run db:office / db:home / db:status / db:fix` — 프록시 타겟 전환·상태 확인 |
+| `docker-compose.yaml` | 컨테이너 이름 `<name>-web-1`, 포트, 웹 루트 볼륨, DB 프록시 주소 |
+| `_docker/Dockerfile` | `php:<버전>-apache` + 소스가 쓰는 확장(mysqli·gd·mbstring·zip·mcrypt) + socat. PHP 7.x면 Debian archive 저장소 전환 포함 |
+| `_docker/docker-entrypoint-local.sh` | 소스가 `hostname=localhost`로 DB에 붙는 구조(CI3 계열)를 위해, 컨테이너 안 유닉스 소켓을 원격 DB로 중계(socat, 죽으면 자동 재기동) |
+| `_docker/db-proxy.sh` | `npm run db:status / db:fix` (+ 직결이면 `db:office / db:home`) — 프록시 타겟 전환·상태 확인 |
+| `_docker/htaccess.local` | 웹 루트 `.htaccess`에 https·www 강제 리다이렉트나 `SetEnv CI_ENV`가 있을 때만 — 그 줄만 뺀 사본을 컨테이너 안에서 `.htaccess` 위에 덮음(원본 무수정) |
 
-- 옵션: `--db-port=3306` `--php=7.2` `--force`(기존 파일 덮어쓰기). `--name`은 생략 시 현재 폴더명 — 두 프로젝트 폴더명이 같으면(`web`/`web`) 반드시 다르게 주세요
+자동으로 판단하는 것:
+
+- **웹 루트** — `sftp.json`의 `context`. `"html"`이면 볼륨 `./html`, `"."`(루트 모드)면 `.`. `--web-dir=`로 덮어쓸 수 있음
+- **무시 목록** — 루트 모드(회사 저장소)면 `.git/info/exclude`에 `/_docker/` `/docker-compose.yaml`, 아니면 `.gitignore`
+- **package.json scripts** — 없는 것만 등록: `db:status` `db:fix` `docker:up` `docker:down` `dev` (+ `db:tunnel` 또는 `db:office`/`db:home`). `browser-sync`가 없으면 `npm i -D`로 설치(`--no-dev`로 생략)
+
+- 옵션: `--db-port=3306` `--tunnel-port=13306` `--watch=<폴더>`(`npm run dev` 감시 범위, 루트 모드 기본은 저장소 전체 — `--watch=pages`처럼 좁히는 걸 권장) `--dev-port=` `--force`(기존 파일 덮어쓰기). `--name`은 생략 시 현재 폴더명 — 두 프로젝트 폴더명이 같으면(`web`/`web`) 반드시 다르게 주세요
 - 같은 개발사 CMS 프로젝트끼리는 **DB 주소·포트·이름 3개만** 다르고 나머지는 동일합니다. 다른 스택이면 생성된 `Dockerfile`의 확장 목록, 소스가 DB에 IP로 붙는 구조면 socat 부분을 빼면 됩니다
-- 재택 등 DB에 직접 못 붙는 환경은 `npm run db:home`(Mac의 `localhost:13306` SSH 터널 경유), 직결되면 `npm run db:office`
+- `--db-tunnel`은 서버 PHP·DB 가 한 서버에 있고 DB 계정이 `user@localhost` 전용인 경우 — 서버 밖(NUC·사무실)에서 3306 으로 직접 붙으면 계정이 거부됩니다. `db:tunnel`은 SSH 로 서버에 들어간 뒤 서버 안에서 `127.0.0.1:3306`으로 붙어 그 제한을 통과합니다(비밀번호·개인키 모두 sftp.json 그대로)
+- 직결 구성에서 재택 등 DB에 직접 못 붙는 환경은 `npm run db:home`(Mac의 `localhost:13306` 터널 경유), 직결되면 `npm run db:office`
 - 실서버 DB에 직결되는 구조이므로 **읽기만** — 로컬에서 INSERT/UPDATE/DELETE 하지 마세요
 - 빌드가 Docker Hub 타임아웃으로 실패하면 같은 Dockerfile로 만든 다른 프로젝트 이미지를 `docker tag <기존이미지> <name>-web:latest`로 이름만 붙여 `docker compose up -d`(빌드 생략) 할 수 있습니다
+- **이전 버전으로 만든 프로젝트**(루트에 `Dockerfile` · `docker-entrypoint-local.sh` · `scripts/db-proxy.sh`)는 그대로 동작합니다. 새 구조로 옮기려면 그 파일들을 지우고 `--force`로 다시 생성 — `db:*` 스크립트 경로가 `_docker/`로 바뀌므로 package.json 의 기존 `db:*` 줄도 지운 뒤 실행하세요
 
 ## 캐시버스팅 — 동작과 한계
 

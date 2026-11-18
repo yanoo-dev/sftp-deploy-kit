@@ -21,6 +21,7 @@ const COMMANDS = {
   'sftp:auto': 'scripts/sftp-auto.js',
   'hook:install': 'scripts/hook-install.js',
   'docker:init': 'scripts/docker-init.js',
+  'db:tunnel': 'scripts/db-tunnel.js',
 };
 
 const USAGE = {
@@ -36,7 +37,8 @@ const USAGE = {
   'remove-git': '서버측 .git 잔여물 제거',
   'sftp:auto': 'VS Code downloadOnOpen 토글 on|off|status',
   'hook:install': 'pre-commit 훅 설치(업로드 안 된 변경 커밋 차단) [--force]',
-  'docker:init': '로컬 PHP 실행용 Docker 파일 4개 생성 --db-host=<주소> [--name=] [--port=8080] [--php=7.2] [--force]',
+  'docker:init': '로컬 PHP Docker 세팅 생성 (--db-host=<주소> | --db-tunnel) [--name= --port=8080 --php=7.2 --watch= --no-dev --force]',
+  'db:tunnel': '맥 → 서버 안 DB SSH 터널 (sftp.json 계정) [--local-port=13306] [--remote-port=3306]',
 };
 
 /**

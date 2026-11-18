@@ -11,7 +11,7 @@
 #
 # 중계 타겟은 /tmp/db-proxy.target 파일로 관리한다.
 #   - 파일이 없으면 docker-compose.yaml 의 DB_PROXY_HOST:PORT (사무실 LAN 직결) 로 생성
-#   - scripts/db-proxy.sh 가 이 파일을 바꾸고 socat 을 kill 하면 루프가 새 타겟으로 재기동
+#   - _docker/db-proxy.sh 가 이 파일을 바꾸고 socat 을 kill 하면 루프가 새 타겟으로 재기동
 #     (재택: host.docker.internal:13306 = Mac 의 DB 터널)
 set -e
 
